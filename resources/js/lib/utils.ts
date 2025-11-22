@@ -16,3 +16,19 @@ export function isSameUrl(
 export function resolveUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     return typeof url === 'string' ? url : url.url;
 }
+
+export function convertTime(
+    date: string,
+    timezone: string = 'Asia/Jakarta',
+    options: Intl.DateTimeFormatOptions = {},
+) {
+    return new Date(date).toLocaleString('id-ID', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        ...options,
+    });
+}
