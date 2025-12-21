@@ -15,13 +15,13 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
-import documents from '@/routes/documents';
+import document from '@/routes/document';
 import AppearanceTabs from '@/components/appearance-tabs';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Document',
-        href: documents.index().url,
+        href: document.index().url,
         icon: FileText,
     },
 ];

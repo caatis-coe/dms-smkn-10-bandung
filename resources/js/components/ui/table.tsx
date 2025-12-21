@@ -8,7 +8,7 @@ export interface Column<T> {
   header: string
   key: keyof T
   enableFilter?: boolean
-  sortable?: boolean 
+  sortable?: boolean
   width?: number
   render?: (row: T) => React.ReactNode
 }
@@ -40,127 +40,123 @@ export function Table<T extends Record<string, any>>({
   onFilterChange,
   page = 1,
   totalPages = 1,
-  onPageChange, 
+  onPageChange,
   perPage = 10,
   onPageSizeChange
 }: TableProps<T>) {
-  
+
+  /* =========================================================
+     LOADING STATE (NEW)
+  ========================================================= */
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  // When data changes → loading done
+  React.useEffect(() => {
+    setIsLoading(false)
+  }, [data])
+
+  const triggerPagination = (cb: () => void) => {
+    if (isLoading) return
+    setIsLoading(true)
+    cb()
+  }
+
   const handleSort = (col: Column<T>) => {
     const sortable = col.sortable ?? true
-    if (!sortable) return
-  
-    if (!onSort) return
-  
+    if (!sortable || !onSort || isLoading) return
+
     const key = col.key
     const newDirection =
       sortKey === key && sortDirection === "asc" ? "desc" : "asc"
-  
+
+    setIsLoading(true)
     onSort(key, newDirection)
   }
 
-  // const startResizing = (e: React.MouseEvent, colIndex: number) => {
-  //   const startX = e.clientX
-  //   const startWidth = columns[colIndex].width ?? 150
-
-  //   const handleMouseMove = (ev: MouseEvent) => {
-  //     const diff = ev.clientX - startX
-  //     columns[colIndex].width = Math.max(80, startWidth + diff)
-  //     document.body.style.cursor = "col-resize"
-  //     window.dispatchEvent(new Event("resize"))
-  //   }
-
-  //   const handleMouseUp = () => {
-  //     document.body.style.cursor = "default"
-  //     document.removeEventListener("mousemove", handleMouseMove)
-  //     document.removeEventListener("mouseup", handleMouseUp)
-  //   }
-
-  //   document.addEventListener("mousemove", handleMouseMove)
-  //   document.addEventListener("mouseup", handleMouseUp)
-  // }
-
   return (
-    <div className="border rounded-xl overflow-hidden">
+    <div className="border rounded-[4px] overflow-hidden">
 
       <div className="overflow-auto">
         <table className="w-full table-fixed border-collapse text-sm">
 
-          {/* STICKY HEADER */}
+          {/* ================= HEADER ================= */}
           <thead className="bg-muted/40 sticky top-0 z-20 backdrop-blur-sm">
             <tr>
               {columns.map((col, i) => {
                 const sortable = col.sortable ?? true
                 return (
-                <th
-                  key={i}
-                  className="px-4 py-6 font-medium text-left relative select-none"
-                  style={{ width: col.width ?? 150 }}
-                >
-                <div className="flex flex-col items-start gap-4">
-                  {/* HEADER + SORT BUTTON */}
-                  <button
-                    className={cn(
-                      "flex items-center gap-1",
-                      sortable ? "hover:opacity-80 cursor-pointer" : "cursor-default"
-                    )}
-                    onClick={() => sortable && handleSort(col)}
-                    disabled={!sortable}
+                  <th
+                    key={i}
+                    className="px-4 py-6 font-medium text-left relative select-none"
+                    style={{ width: col.width ?? 150 }}
                   >
-                    <div className="text-start ">
-                      {col.header}
+                    <div className="flex flex-col items-start gap-4">
+                      <button
+                        className={cn(
+                          "flex items-center gap-1",
+                          sortable && !isLoading
+                            ? "hover:opacity-80 cursor-pointer"
+                            : "cursor-default opacity-50"
+                        )}
+                        onClick={() => handleSort(col)}
+                        disabled={!sortable || isLoading}
+                      >
+                        {col.header}
+
+                        {sortable && (
+                          sortKey === col.key ? (
+                            sortDirection === "asc"
+                              ? <ChevronUp className="w-4 h-4" />
+                              : <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronUp className="w-3 h-3 opacity-20" />
+                          )
+                        )}
+                      </button>
+
+                      {col.enableFilter && onFilterChange && (
+                        <input
+                          disabled={isLoading}
+                          type="text"
+                          className="h-9 w-full rounded border px-4 text-xs bg-background disabled:opacity-50"
+                          placeholder="Filter…"
+                          value={filters?.[col.key as string] ?? ""}
+                          onChange={(e) =>
+                            onFilterChange(col.key, e.target.value)
+                          }
+                        />
+                      )}
                     </div>
-                    
-
-                    {/* Show icon only if sortable */}
-                    {sortable && (
-                      sortKey === col.key ? (
-                        sortDirection === "asc" ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )
-                      ) : (
-                        <ChevronUp className="w-3 h-3 opacity-20" />
-                      )
-                    )}
-                  </button>
-
-                  {/* FILTER ABOVE HEADER */}
-                  {col.enableFilter && onFilterChange && (
-                    <input
-                      type="text"
-                      className="h-9 w-full rounded border px-4 text-xs bg-background"
-                      placeholder="Filter…"
-                      value={filters?.[col.key as string] ?? ""}
-                      onChange={(e) => onFilterChange(col.key, e.target.value)}
-                    />
-                  )}
-                </div>
-
-                  {/* COLUMN RESIZER */}
-                  {/* <div
-                    onMouseDown={(e) => startResizing(e, i)}
-                    className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-primary/20"
-                  /> */}
-                </th>
-              )})}
+                  </th>
+                )
+              })}
             </tr>
           </thead>
 
-          {/* BODY */}
+          {/* ================= BODY ================= */}
           <tbody>
-            {data.length != 0 ? data.map((row, rIndex) => (
-              <tr
-                key={rIndex}
-                className="border-t hover:bg-muted/30 transition"
-              >
-                {columns.map((col, i) => (
-                  <td key={i} className="px-4 py-3">
-                    {col.render ? col.render(row) : row[col.key]}
-                  </td>
-                ))}
-              </tr>
-            )) : (
+            {isLoading ? (
+              /* ===== SKELETON LOADING ===== */
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-t">
+                  {columns.map((_, j) => (
+                    <td key={j} className="px-4 py-3">
+                      <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : data.length !== 0 ? (
+              data.map((row, rIndex) => (
+                <tr key={rIndex} className="border-t hover:bg-muted/30 transition">
+                  {columns.map((col, i) => (
+                    <td key={i} className="px-4 py-3">
+                      {col.render ? col.render(row) : row[col.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
               <tr>
                 <td
                   colSpan={columns.length}
@@ -171,74 +167,83 @@ export function Table<T extends Record<string, any>>({
               </tr>
             )}
           </tbody>
-
         </table>
       </div>
 
-      {/* PAGINATION */}
+      {/* ================= PAGINATION ================= */}
       {onPageChange && (
-  <div className="flex justify-between items-center p-4 bg-muted/30 gap-4">
-    <div className="flex gap-x-12">
-      {/* LEFT: Prev button */}
-      <button
-        disabled={page <= 1}
-        className="px-3 py-1 rounded bg-background border disabled:opacity-50 disabled:cursor-default cursor-pointer"
-        onClick={() => onPageChange(page - 1)}
-      >
-        Prev
-      </button>
+        <div className="flex justify-between items-center p-4 bg-muted/30 gap-4">
+          <div className="flex gap-x-12">
+            {/* PREV */}
+            <button
+              disabled={page <= 1 || isLoading}
+              className="px-3 py-1 rounded bg-background border disabled:opacity-50"
+              onClick={() =>
+                triggerPagination(() => onPageChange(page - 1))
+              }
+            >
+              Prev
+            </button>
 
-      {/* CENTER: Page input + "of X" */}
-      <div className="flex items-center gap-2 text-sm">
-        <span>Page</span>
+            {/* PAGE INPUT */}
+            <div className="flex items-center gap-2 text-sm">
+              <span>Page</span>
+              <input
+                disabled={isLoading}
+                type="number"
+                min={1}
+                max={totalPages}
+                value={page}
+                onChange={(e) =>
+                  triggerPagination(() =>
+                    onPageChange(
+                      Math.min(
+                        Math.max(Number(e.target.value), 1),
+                        totalPages
+                      )
+                    )
+                  )
+                }
+                className="w-16 px-2 py-1 border rounded bg-background disabled:opacity-50"
+              />
+              <span>of</span>
+              <span>{totalPages}</span>
+            </div>
 
-        {/* MANUAL PAGE INPUT */}
-        <input
-          type="number"
-          min={1}
-          max={totalPages}
-          value={page}
-          onChange={(e) => {
-            let newPage = Number(e.target.value)
-            if (newPage < 1) newPage = 1
-            if (newPage > totalPages) newPage = totalPages
-            onPageChange(newPage)
-          }}
-          className="w-16 px-2 py-1 border rounded bg-background ml"
-        />
+            {/* NEXT */}
+            <button
+              disabled={page >= totalPages || isLoading}
+              className="px-3 py-1 rounded bg-background border disabled:opacity-50"
+              onClick={() =>
+                triggerPagination(() => onPageChange(page + 1))
+              }
+            >
+              Next
+            </button>
+          </div>
 
-        <span>of</span>
-        <span>{totalPages}</span>
-      </div>
-
-      {/* RIGHT: Next button */}
-      <button
-        disabled={page >= totalPages}
-        className="px-3 py-1 rounded bg-background border disabled:opacity-50 disabled:cursor-default cursor-pointer"
-        onClick={() => onPageChange(parseInt(String(page)) + 1)}
-      >
-        Next
-      </button>
-    </div>
-
-    {/* PAGE SIZE SELECTOR */}
-    <div className="flex items-center gap-2 text-sm">
-      <span>Rows:</span>
-      <select
-        className="px-2 py-1 border rounded bg-background"
-        value={perPage}
-        onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
-      >
-        {[10, 25, 50, 100].map((size) => (
-          <option key={size} value={size}>
-            {size}
-          </option>
-        ))}
-      </select>
-    </div>
-
-  </div>
-)}
+          {/* PAGE SIZE */}
+          <div className="flex items-center gap-2 text-sm">
+            <span>Rows:</span>
+            <select
+              disabled={isLoading}
+              className="px-2 py-1 border rounded bg-background disabled:opacity-50"
+              value={perPage}
+              onChange={(e) =>
+                triggerPagination(() =>
+                  onPageSizeChange?.(Number(e.target.value))
+                )
+              }
+            >
+              {[10, 25, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

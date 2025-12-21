@@ -16,54 +16,47 @@ class DocumentController extends Controller
             'sort' => $request->get('sort'),
             'direction' => $request->get('direction', 'asc'),
             'filters' => $request->get('filters', []),
-            'page' => $request->get('page', 1),
             'per_page' => $request->get('per_page', 10),
         ];
 
-        // 🧩 Which fields are filterable directly?
         $directFilters = [
             'id',
             'name',
-            'file_path',
-            'created_at',
-            'updated_at',
+            'standard',
+            'clause',
+            'document_type',
+            'revision',
         ];
 
-        // 🧩 Which fields filter through relations?
         $relationFilters = [
             'published_by' => 'publishedBy',
             'last_updated_by' => 'lastUpdatedBy',
+            'document_owner' => 'owner',
         ];
 
         $documents = Document::query()
-
-            // Sorting
             ->when(
                 $query['sort'],
                 fn($q) =>
                 $q->orderBy($query['sort'], $query['direction'])
             )
-
-            // 🧠 Dynamic Filters
             ->when(true, function ($q) use ($query, $directFilters, $relationFilters) {
-
                 foreach ($query['filters'] as $key => $value) {
                     if (!$value)
                         continue;
 
                     if (in_array($key, $directFilters)) {
-                        $q->where($key, "LIKE", "%{$value}%");
+                        $q->where($key, 'LIKE', "%{$value}%");
                     }
 
                     if (array_key_exists($key, $relationFilters)) {
-                        $relation = $relationFilters[$key];
-                        $q->whereHas($relation, function ($sub) use ($value) {
-                            $sub->where('name', "LIKE", "%{$value}%");
+                        $q->whereHas($relationFilters[$key], function ($sub) use ($value) {
+                            $sub->where('name', 'LIKE', "%{$value}%");
                         });
                     }
                 }
             })
-            ->paginate($query['per_page'])
+            ->paginate($query['per_page'] ?? 10)
             ->withQueryString();
 
         return Inertia::render('document/index', [
@@ -77,28 +70,31 @@ class DocumentController extends Controller
         $validated = $request->validate([
             'id' => 'required|string|unique:documents,id',
             'name' => 'required|string|max:255',
+            'standard' => 'nullable|string|max:255',
+            'clause' => 'nullable|string|max:255',
+            'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
+            'document_owner' => 'nullable|exists:group_owners,id',
+            'revision' => 'nullable|string|max:50',
+            'effective_date' => 'nullable|date',
+            'application_link' => 'nullable|url',
+
             'file' => 'required|file|mimes:pdf|max:20480',
-        ], [
-            'id.required' => 'Nomor dokumen wajib diisi.',
-            'id.string' => 'Nomor dokumen tidak valid.',
-            'id.unique' => 'Nomor dokumen sudah digunakan, silakan pilih yang lain.',
-
-            'name.required' => 'Nama dokumen wajib diisi.',
-            'name.string' => 'Nama dokumen tidak valid.',
-            'name.max' => 'Nama dokumen terlalu panjang.',
-
-            'file.required' => 'File PDF wajib diunggah.',
-            'file.file' => 'File yang diunggah tidak valid.',
-            'file.mimes' => 'File harus berupa PDF.',
-            'file.max' => 'Ukuran file terlalu besar (maksimum 20MB).',
+            'supporting_file' => 'nullable|file|mimes:pdf|max:20480',
         ]);
 
-        $path = $request->file('file')->store('documents', 'public');
+        $filePath = $request->file('file')->store('documents', 'public');
+
+        $supportingPath = null;
+        if ($request->hasFile('supporting_file')) {
+            $supportingPath = $request
+                ->file('supporting_file')
+                ->store('supporting-documents', 'public');
+        }
 
         Document::create([
-            'id' => $validated['id'],
-            'name' => $validated['name'],
-            'file_path' => $path,
+            ...$validated,
+            'file_path' => $filePath,
+            'supporting_file_path' => $supportingPath,
             'published_by' => Auth::id(),
             'last_updated_by' => Auth::id(),
         ]);
@@ -108,35 +104,50 @@ class DocumentController extends Controller
             ->with('success', 'Document uploaded successfully.');
     }
 
+
     public function update(Request $request, Document $document)
     {
         $validated = $request->validate([
-            'id'   => 'nullable|string|unique:documents,id,' . $document->id,
+            'id' => 'nullable|string|unique:documents,id,' . $document->id,
             'name' => 'required|string|max:255',
+            'standard' => 'nullable|string|max:255',
+            'clause' => 'nullable|string|max:255',
+            'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
+            'document_owner' => 'nullable|exists:group_owners,id',
+            'revision' => 'nullable|string|max:50',
+            'effective_date' => 'nullable|date',
+            'application_link' => 'nullable|url',
+
             'file' => 'nullable|file|mimes:pdf|max:20480',
-        ], [
-            'id.unique' => 'Nomor dokumen sudah digunakan, silakan pilih yang lain.',
-
-            'name.required' => 'Nama dokumen wajib diisi.',
-            'name.max' => 'Nama dokumen terlalu panjang.',
-
-            'file.file' => 'File yang diunggah tidak valid.',
-            'file.mimes' => 'File harus berupa PDF.',
-            'file.max' => 'Ukuran file terlalu besar (maksimum 20MB).',
+            'supporting_file' => 'nullable|file|mimes:pdf|max:20480',
+            'remove_supporting_file' => 'nullable|boolean',
         ]);
 
         $data = [
-            'id' => $validated['id'],
-            'name' => $validated['name'],
+            ...$validated,
             'last_updated_by' => Auth::id(),
         ];
 
-        if ($request->hasFile('file')) {
-            if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-                Storage::disk('public')->delete($document->file_path);
-            }
+        /* ================= Main File ================= */
 
-            $data['file_path'] = $request->file('file')->store('documents', 'public');
+        if ($request->hasFile('file')) {
+            Storage::disk('public')->delete($document->file_path);
+            $data['file_path'] = $request
+                ->file('file')
+                ->store('documents', 'public');
+        }
+
+        /* ================= Supporting File ================= */
+
+        if ($request->boolean('remove_supporting_file')) {
+            Storage::disk('public')->delete($document->supporting_file_path);
+            $data['supporting_file_path'] = null;
+        } else if ($request->hasFile('supporting_file')) {
+            Storage::disk('public')->delete($document->supporting_file_path);
+
+            $data['supporting_file_path'] = $request
+                ->file('supporting_file')
+                ->store('supporting-documents', 'public');
         }
 
         $document->update($data);
@@ -144,11 +155,13 @@ class DocumentController extends Controller
         return back()->with('success', 'Document updated successfully.');
     }
 
+
     public function destroy(Document $document)
     {
-        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-            Storage::disk('public')->delete($document->file_path);
-        }
+        Storage::disk('public')->delete([
+            $document->file_path,
+            $document->supporting_file_path,
+        ]);
 
         $document->delete();
 

@@ -1,4 +1,3 @@
-import DocumentController from '@/actions/App/Http/Controllers/DocumentController';
 import {
     Dialog,
     DialogContent,
@@ -6,261 +5,291 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { DocumentItem } from '@/pages/document';
-import { User } from '@/types';
-
 import { Form, router } from '@inertiajs/react';
-import { Download, Eye, Pencil, Trash } from 'lucide-react';
+import { Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';
+import type { Document, User } from '@/types';
 import { Button } from '../ui/button';
+import FileDropzone from '../ui/file-dropzone';
 
 export type ActionsCellProps = {
-    row: DocumentItem;
+    row: Document;
     user: User | null;
 };
 
 export function ActionsCell({ row, user }: ActionsCellProps) {
-    const canDownload = user && (user.role === 'user' || user.role === 'admin');
     const canAdmin = user?.role === 'admin';
+    if (!canAdmin) return null;
 
-    const IconButton = ({
-        children,
-        onClick,
-        title,
-    }: {
-        children: React.ReactNode;
-        onClick?: () => void;
-        title: string;
-    }) => (
-        <button
-            onClick={onClick}
-            title={title}
-            className="cursor-pointer rounded p-1 transition hover:bg-white/10"
-        >
-            {children}
-        </button>
-    );
     return (
         <div className="flex items-center gap-2">
-            {/* VIEW — always available */}
-            <Dialog>
-                <DialogTrigger
-                    title="View Document"
-                    className="cursor-pointer rounded p-1 transition hover:bg-white/10"
-                >
-                    <Eye className="h-4 w-4 text-icon-view" />
-                </DialogTrigger>
+            {/* ==================== UPDATE BUTTON ==================== */}
+            {(() => {
+                const [open, setOpen] = useState(false);
+                const [removeSupporting, setRemoveSupporting] = useState(false);
 
-                <DialogContent className="flex h-[90vh] max-w-[95vw] flex-col sm:max-w-[90vw]">
-                    <DialogHeader>
-                        <DialogTitle>{row.name}</DialogTitle>
-                    </DialogHeader>
+                return (
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger
+                            title="Update Document"
+                            className="cursor-pointer rounded p-1 transition hover:bg-foreground/5"
+                        >
+                            <Pencil className="h-4 w-4 text-icon-edit" />
+                        </DialogTrigger>
 
-                    <iframe
-                        src={`${row.file_url}#toolbar=0`}
-                        className="w-full flex-1 rounded border"
-                    />
-                </DialogContent>
-            </Dialog>
+                        <DialogContent className="flex  max-w-[95vw] flex-col sm:max-w-[80vw]">
+                            <DialogHeader>
+                                <DialogTitle>Edit Document</DialogTitle>
+                            </DialogHeader>
 
-            {/* DOWNLOAD — only for logged-in (user/admin) */}
-            {canDownload && (
-                <a
-                    href={row.file_url}
-                    download={`${row.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`}
-                    title="Download PDF"
-                    className="cursor-pointer rounded p-1 transition hover:bg-white/10"
-                >
-                    <Download className="h-4 w-4 text-icon-download" />
-                </a>
-            )}
-
-            {/* UPDATE — admin only */}
-            {canAdmin &&
-                (() => {
-                    const [open, setOpen] = useState(false);
-                    const [docId, setDocId] = useState(row.id);
-                    const [docName, setDocName] = useState(row.name);
-                    const [docFile, setDocFile] = useState<File | null>(null);
-
-                    const idChanged = docId !== row.id;
-                    const nameChanged = docName !== row.name;
-                    const somethingChanged =
-                        idChanged || nameChanged || !!docFile;
-
-                    const isSubmitDisabled =
-                        !docId.trim() ||
-                        !docName.trim() ||
-                        (!idChanged && !nameChanged && !docFile);
-                    
-                    return (
-                        <Dialog open={open} onOpenChange={setOpen}>
-                            <DialogTrigger
-                                title="Update Document"
-                                className="cursor-pointer rounded p-1 transition hover:bg-white/10"
-                                onClick={() => setOpen(true)}
+                            <Form
+                                method="post"
+                                action={`/documents/${row.id}`}
+                                onSuccess={() => setOpen(false)}
+                                className="space-y-6"
                             >
-                                <Pencil className="h-4 w-4 text-icon-edit" />
-                            </DialogTrigger>
+                                <input type="hidden" name="_method" value="PUT" />
 
-                            <DialogContent className="max-w-xl">
-                                <DialogHeader>
-                                    <DialogTitle>Edit Document</DialogTitle>
-                                </DialogHeader>
+                                {/* =================================================== */}
+                                {/*                TWO COLUMN FORM LAYOUT              */}
+                                {/* =================================================== */}
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    {/* ================= LEFT COLUMN ================= */}
+                                    <div className="space-y-4 border rounded-lg p-4">
+                                        <h3 className="font-semibold mb-2 text-lg">
+                                            Informasi Dokumen
+                                        </h3>
 
-                                <Form
-                                    {...DocumentController.update.form({
-                                        document: row.id,
-                                    })}
-                                    resetOnSuccess
-                                    onSuccess={() => setOpen(false)}
-                                    options={{ preserveScroll: true }}
-                                    className="flex flex-col gap-4"
-                                >
-                                    {({ errors, processing }) => (
-                                        <>
-                                            {/* DOCUMENT ID */}
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-sm font-medium">
-                                                    Nomor Dokumen
-                                                </label>
+                                        {/* ID */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">
+                                                Nomor Dokumen
+                                            </label>
+                                            <input
+                                                name="id"
+                                                defaultValue={row.id}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
 
-                                                <input
-                                                    name="id"
-                                                    type="text"
-                                                    defaultValue={row.id}
-                                                    className="rounded border bg-background p-2"
-                                                    onChange={(e) => setDocId(e.target.value)}
-                                                />
+                                        {/* NAME */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">
+                                                Nama Dokumen
+                                            </label>
+                                            <input
+                                                name="name"
+                                                defaultValue={row.name}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
 
-                                                {errors.id && (
-                                                    <p className="text-xs text-red-500">
-                                                        {errors.id}
-                                                    </p>
-                                                )}
-                                            </div>
+                                        {/* STANDARD */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">Standar</label>
+                                            <input
+                                                name="standard"
+                                                defaultValue={row.standard ?? ""}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
 
-                                            {/* DOCUMENT NAME */}
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-sm font-medium">
-                                                    Nama Dokumen
-                                                </label>
+                                        {/* CLAUSE */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">Klausul</label>
+                                            <input
+                                                name="clause"
+                                                defaultValue={row.clause ?? ""}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
 
-                                                <input
-                                                    name="name"
-                                                    type="text"
-                                                    defaultValue={row.name}
-                                                    className="rounded border bg-background p-2"
-                                                    onChange={(e) => setDocName(e.target.value)}
-                                                />
+                                        {/* DOCUMENT TYPE */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">
+                                                Jenis Dokumen
+                                            </label>
+                                            <select
+                                                name="document_type"
+                                                defaultValue={row.document_type}
+                                                className="rounded border p-2"
+                                            >
+                                                <option value="prosedur">Prosedur</option>
+                                                <option value="instruksi">Instruksi</option>
+                                                <option value="dokumen_lain">Dokumen Lain</option>
+                                            </select>
+                                        </div>
 
-                                                {errors.name && (
-                                                    <p className="text-xs text-red-500">
-                                                        {errors.name}
-                                                    </p>
-                                                )}
-                                            </div>
+                                        {/* DOCUMENT OWNER */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">
+                                                Pemilik Dokumen
+                                            </label>
+                                            <input
+                                                name="document_owner"
+                                                placeholder="Group Owner ID"
+                                                defaultValue={row.document_owner ?? ""}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
 
-                                            {/* FILE */}
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-sm font-medium">
-                                                    Ubah Dokumen
-                                                </label>
+                                        {/* REVISION */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">Revisi</label>
+                                            <input
+                                                name="revision"
+                                                defaultValue={row.revision ?? ""}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
 
-                                                <input
-                                                    name="file"
-                                                    type="file"
-                                                    accept="application/pdf"
-                                                    className="rounded border bg-background p-2"
-                                                    onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
-                                                />
+                                        {/* EFFECTIVE DATE */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">
+                                                Tanggal Efektif
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="effective_date"
+                                                defaultValue={row.effective_date ?? ""}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
 
-                                                {errors.file && (
-                                                    <p className="text-xs text-red-500">
-                                                        {errors.file}
-                                                    </p>
-                                                )}
-                                            </div>
+                                        {/* APPLICATION LINK */}
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-medium text-sm">Link Aplikasi</label>
+                                            <input
+                                                name="application_link"
+                                                defaultValue={row.application_link ?? ""}
+                                                className="rounded border p-2"
+                                            />
+                                        </div>
+                                    </div>
 
-                                            {/* BUTTONS */}
-                                            <div className="mt-4 flex justify-end gap-3">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        setOpen(false)
+                                    {/* ================= RIGHT COLUMN ================= */}
+                                    <div className="space-y-6 border rounded-lg p-4">
+                                        <h3 className="font-semibold mb-2 text-lg">
+                                            File Dokumen
+                                        </h3>
+
+                                        {/* MAIN FILE */}
+                                        <div className="space-y-2">
+                                            <label className="font-medium text-sm">
+                                                Ubah File Utama (optional)
+                                            </label>
+
+                                            <FileDropzone
+                                                onFileSelect={(file) => {
+                                                    const input = document.querySelector<HTMLInputElement>(
+                                                        'input[name="file"]',
+                                                    );
+                                                    if (input) {
+                                                        const dt = new DataTransfer();
+                                                        if (file) dt.items.add(file);
+                                                        input.files = dt.files;
                                                     }
-                                                >
-                                                    Cancel
-                                                </Button>
+                                                }}
+                                            />
 
-                                                <Button
-                                                    type="submit"
-                                                    disabled={processing || isSubmitDisabled}
-                                                >
-                                                    Save Changes
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
-                                </Form>
-                            </DialogContent>
-                        </Dialog>
-                    );
-                })()}
+                                            <input type="file" name="file" className="hidden" />
+                                        </div>
 
-            {/* DELETE — admin only */}
-            {canAdmin &&
-                (() => {
-                    const [open, setOpen] = useState(false);
+                                        {/* SUPPORTING FILE */}
+                                        <div className="space-y-2">
+                                            <label className="font-medium text-sm">
+                                                Ubah File Pendukung (optional)
+                                            </label>
 
-                    return (
-                        <Dialog open={open} onOpenChange={setOpen}>
-                            <DialogTrigger
-                                title="Delete Document"
-                                className="hover:bg-icon-delete-hover cursor-pointer rounded p-1 transition"
-                            >
-                                <Trash className="h-4 w-4 text-icon-delete" />
-                            </DialogTrigger>
+                                            <FileDropzone
+                                                onFileSelect={(file) => {
+                                                    const input = document.querySelector<HTMLInputElement>(
+                                                        'input[name="supporting_file"]',
+                                                    );
+                                                    if (input) {
+                                                        const dt = new DataTransfer();
+                                                        if (file) dt.items.add(file);
+                                                        input.files = dt.files;
+                                                    }
+                                                }}
+                                            />
 
-                            <DialogContent className="max-w-sm">
-                                <DialogHeader>
-                                    <DialogTitle>Delete Document</DialogTitle>
-                                </DialogHeader>
+                                            <input type="file" name="supporting_file" className="hidden" />
+                                        </div>
 
-                                <p className="text-sm text-muted-foreground">
-                                    Are you sure you want to delete{' '}
-                                    <strong>{row.name}</strong>? This action
-                                    cannot be undone.
-                                </p>
+                                        {/* REMOVE SUPPORTING FILE */}
+                                        <label className="flex items-center gap-2 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                name="remove_supporting_file"
+                                                value="1"
+                                                checked={removeSupporting}
+                                                onChange={(e) => setRemoveSupporting(e.target.checked)}
+                                            />
+                                            Hapus File Pendukung
+                                        </label>
+                                    </div>
+                                </div>
 
-                                <div className="mt-6 flex justify-end gap-3">
+                                {/* ================= SAVE BUTTONS ================= */}
+                                <div className="flex justify-end gap-3">
                                     <Button
                                         variant="outline"
+                                        type="button"
                                         onClick={() => setOpen(false)}
                                     >
                                         Cancel
                                     </Button>
 
-                                    <Button
-                                        variant="destructive"
-                                        onClick={() =>
-                                            router.delete(
-                                                `/documents/${row.id}`,
-                                                {
-                                                    onFinish: () =>
-                                                        setOpen(false),
-                                                },
-                                            )
-                                        }
-                                    >
-                                        Delete
+                                    <Button type="submit" variant="default">
+                                        Save Changes
                                     </Button>
                                 </div>
-                            </DialogContent>
-                        </Dialog>
-                    );
-                })()}
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
+                );
+            })()}
+
+            {/* ==================== DELETE BUTTON ==================== */}
+            {(() => {
+                const [open, setOpen] = useState(false);
+                return (
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger className="cursor-pointer rounded p-1 transition hover:bg-icon-delete-hover">
+                            <Trash className="h-4 w-4 text-icon-delete" />
+                        </DialogTrigger>
+
+                        <DialogContent className="max-w-sm rounded-xl">
+                            <DialogHeader>
+                                <DialogTitle>Delete Document</DialogTitle>
+                            </DialogHeader>
+
+                            <p className="text-sm">
+                                Are you sure you want to delete{" "}
+                                <strong>{row.name}</strong>? This action cannot be undone.
+                            </p>
+
+                            <div className="mt-6 flex justify-end gap-3">
+                                <Button variant="outline" onClick={() => setOpen(false)}>
+                                    Cancel
+                                </Button>
+
+                                <Button
+                                    variant="destructive"
+                                    onClick={() =>
+                                        router.delete(`/documents/${row.id}`, {
+                                            onFinish: () => setOpen(false),
+                                        })
+                                    }
+                                >
+                                    Delete
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                );
+            })()}
         </div>
     );
 }

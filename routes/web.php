@@ -9,23 +9,32 @@ Route::get('/', function () {
     return redirect()->route('documents.index');
 })->name('home');
 
-Route::get('documents', [DocumentController::class, 'index'])
-    ->name('documents.index');
+Route::get('document', [DocumentController::class, 'index'])
+    ->name('document.index');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        return redirect()->route('documents.index');
+        return redirect()->route('document.index');
     })->name('dashboard');
 
-    Route::post('documents', [DocumentController::class, 'store'])
-        ->name('documents.store');
+    Route::prefix('document')->group(function () {
+        Route::post('', [DocumentController::class, 'store'])
+            ->name('document.store');
 
-    Route::put('documents/{document}', [DocumentController::class, 'update'])
-        ->name('documents.update');
+        Route::put('{document}', [DocumentController::class, 'update'])
+            ->name('document.update');
 
-    Route::delete('documents/{document}', [DocumentController::class, 'destroy'])
-        ->name('documents.destroy');
+        Route::delete('{document}', [DocumentController::class, 'destroy'])
+            ->name('document.destroy');
+    });
+
+
+    Route::prefix()->group(function () {
+        
+    });
+
+
 });
 
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

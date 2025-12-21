@@ -9,41 +9,63 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { type SharedData } from '@/types';
-import { usePage, Link } from '@inertiajs/react';
-import { ChevronsUpDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Link, usePage } from '@inertiajs/react';
+import { ChevronsUpDown, LogIn, UserPlus } from 'lucide-react';
 
 export function NavUser() {
     const { auth } = usePage<SharedData>().props;
     const { state } = useSidebar();
     const isMobile = useIsMobile();
-
+    const collapsed = state === 'collapsed';
     const user = auth.user;
 
     return (
         <SidebarMenu>
             <SidebarMenuItem>
                 {!user ? (
-                    <div className="flex flex-col gap-3 p-2">
+                    <div
+                        className={cn(
+                            'flex gap-2 p-2',
+                            collapsed ? 'flex-col items-center' : 'flex-col',
+                        )}
+                    >
                         <Link href="/login">
                             <Button
                                 variant="outline"
-                                className="w-full justify-center"
+                                title="Log In"
+                                className={cn(
+                                    collapsed
+                                        ? 'h-9 w-9 p-0'
+                                        : 'w-full justify-center',
+                                )}
                             >
-                                Log In
+                                <LogIn className="h-4 w-4" />
+                                {!collapsed && (
+                                    <span className="ml-2">Log In</span>
+                                )}
                             </Button>
                         </Link>
 
                         <Link href="/register">
                             <Button
                                 variant="default"
-                                className="w-full justify-center"
+                                title="Register"
+                                className={cn(
+                                    collapsed
+                                        ? 'h-9 w-9 p-0'
+                                        : 'w-full justify-center',
+                                )}
                             >
-                                Register
+                                <UserPlus className="h-4 w-4" />
+                                {!collapsed && (
+                                    <span className="ml-2">Register</span>
+                                )}
                             </Button>
                         </Link>
                     </div>
@@ -68,8 +90,8 @@ export function NavUser() {
                                 isMobile
                                     ? 'bottom'
                                     : state === 'collapsed'
-                                        ? 'left'
-                                        : 'bottom'
+                                      ? 'left'
+                                      : 'bottom'
                             }
                         >
                             <UserMenuContent user={user} />

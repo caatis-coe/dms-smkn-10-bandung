@@ -1,11 +1,20 @@
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogTrigger,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogClose,
+} from "@/components/ui/dialog";
 import DocumentController from "@/actions/App/Http/Controllers/DocumentController";
 import { Form } from "@inertiajs/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import FileDropzone from "@/components/ui/file-dropzone"; // ← your custom dropzone
 
 export default function CreateDocumentDialog() {
     const [open, setOpen] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -20,17 +29,29 @@ export default function CreateDocumentDialog() {
 
                 <Form
                     {...DocumentController.store.form()}
+                    transform={(data) => {
+                        // Inject the selected file into Inertia form data
+                        return {
+                            ...data,
+                            file: selectedFile ?? null,
+                        };
+                    }}
                     options={{
                         preserveScroll: true,
                     }}
-                    onSuccess= {() => setOpen(false)}
+                    onSuccess={() => {
+                        setOpen(false);
+                        setSelectedFile(null);
+                    }}
                     className="flex flex-col gap-4"
                 >
                     {({ errors, processing }) => (
                         <>
                             {/* DOCUMENT ID */}
                             <div className="flex flex-col gap-1">
-                                <label className="text-sm font-medium">Nomor Dokumen</label>
+                                <label className="text-sm font-medium">
+                                    Nomor Dokumen
+                                </label>
 
                                 <input
                                     name="id"
@@ -40,13 +61,17 @@ export default function CreateDocumentDialog() {
                                 />
 
                                 {errors.id && (
-                                    <p className="text-xs text-red-500">{errors.id}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.id}
+                                    </p>
                                 )}
                             </div>
 
                             {/* DOCUMENT NAME */}
                             <div className="flex flex-col gap-1">
-                                <label className="text-sm font-medium">Nama Dokumen</label>
+                                <label className="text-sm font-medium">
+                                    Nama Dokumen
+                                </label>
 
                                 <input
                                     name="name"
@@ -56,24 +81,26 @@ export default function CreateDocumentDialog() {
                                 />
 
                                 {errors.name && (
-                                    <p className="text-xs text-red-500">{errors.name}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.name}
+                                    </p>
                                 )}
                             </div>
 
-                            {/* FILE UPLOAD */}
+                            {/* FILE DROPZONE */}
                             <div className="flex flex-col gap-1">
-                                <label className="text-sm font-medium">Unggah PDF</label>
+                                <label className="text-sm font-medium">
+                                    Unggah PDF
+                                </label>
 
-                                <input
-                                    name="file"
-                                    type="file"
-                                    accept="application/pdf"
-                                    className="rounded border bg-background p-2"
-                                    required
+                                <FileDropzone
+                                    onFileSelect={(file) => setSelectedFile(file)}
                                 />
 
                                 {errors.file && (
-                                    <p className="text-xs text-red-500">{errors.file}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.file}
+                                    </p>
                                 )}
                             </div>
 

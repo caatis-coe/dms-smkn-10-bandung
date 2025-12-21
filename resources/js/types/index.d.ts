@@ -34,10 +34,41 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    role: string;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
+    [key: string]: unknown; 
+}
+
+export interface Document {
+    id: string;
+
+    // ISO / metadata
+    standard?: string | null;
+    clause?: string | null;
+    document_type: "prosedur" | "instruksi" | "dokumen_lain";
+
+    // Core
+    name: string;
+    revision?: string | null;
+    effective_date?: string | null;
+
+    // Relations
+    document_owner?: string;
+    published_by?: User;
+    last_updated_by?: User;
+
+    // Files
+    file_path?: string | null;
+    file_url: string;
+    supporting_file_path?: string | null;
+    supporting_file_url?: string | null;
+    application_link?: string | null;
+
+    // Timestamps
+    created_at: string;
+    updated_at: string;
 }

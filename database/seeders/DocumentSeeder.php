@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Document;
 use App\Models\User;
+use App\Models\GroupOwner;
 use Illuminate\Database\Seeder;
 use Dompdf\Dompdf;
 use Illuminate\Support\Facades\Storage;
@@ -13,27 +14,61 @@ class DocumentSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ensure storage path exists
         Storage::disk('public')->makeDirectory('documents');
+        Storage::disk('public')->makeDirectory('supporting-documents');
 
         $users = User::pluck('id')->toArray();
+        $owners = GroupOwner::pluck('name')->toArray();
+
+        $standards = [
+            'Dokumen ISO 21001:2018',
+            'Dokumen ISO 9001:2015',
+            'Dokumen ISO 27001:2022',
+            'Dokumen Internal Universitas'
+        ];
+
+        $clauses = [
+            '7.1.3', '7.3', '8.5.1', '8.5.2', '8.5.5',
+            '7.5.1', '7.5.3.2', '7.1.6.2'
+        ];
+
+        $types = ['prosedur', 'instruksi', 'dokumen_lain'];
 
         for ($i = 1; $i <= 24; $i++) {
+
             $uuid = Str::uuid()->toString();
-            $fileName = "sample-{$uuid}.pdf";
-            $filePath = "documents/{$fileName}";
 
-            $this->generatePdf("Sample Document {$i}", $fileName);
+            // MAIN FILE
+            $mainFile = "doc-{$uuid}.pdf";
+            $mainPath = "documents/{$mainFile}";
+            $this->generatePdf("Sample Document {$i}", $mainFile);
 
-            $publishedBy = $users[array_rand($users)] ?? null;
-            $updatedBy   = $users[array_rand($users)] ?? $publishedBy;
+            // SUPPORTING FILE
+            $supportingFile = "support-{$uuid}.pdf";
+            $supportingPath = "supporting-documents/{$supportingFile}";
+            $this->generatePdf("Supporting File for {$i}", $supportingFile);
 
             Document::create([
-                'id'              => $uuid,
-                'name'            => "Sample Document {$i}",
-                'file_path'       => $filePath,
-                'published_by'    => $publishedBy,
-                'last_updated_by' => $updatedBy,
+                'id'                   => $uuid,
+                'name'                 => "Sample Document {$i}",
+                'standard'             => $standards[array_rand($standards)],
+                'clause'               => $clauses[array_rand($clauses)],
+                'document_type'        => $types[array_rand($types)],
+                'document_owner'       => $owners[array_rand($owners)] ?? null,
+                'file_path'            => $mainPath,
+                'supporting_file_path' => rand(0, 1) 
+                                            ? $supportingPath
+                                            : null,
+                'application_link'     => rand(0, 1)
+                                            ? 'https://www.google.com/search?q=sunda'
+                                            : null,
+                'revision'             => rand(0, 1)
+                                            ? sprintf('%02d', rand(0, 10))
+                                            : null,
+                'effective_date'       => now()->subDays(rand(10, 200))->format('Y-m-d'),
+
+                'published_by'         => $users[array_rand($users)] ?? null,
+                'last_updated_by'      => $users[array_rand($users)] ?? null,
             ]);
         }
     }
@@ -57,5 +92,6 @@ class DocumentSeeder extends Seeder
         $dompdf->render();
 
         Storage::disk('public')->put("documents/{$fileName}", $dompdf->output());
+        Storage::disk('public')->put("supporting-documents/{$fileName}", $dompdf->output());
     }
 }
