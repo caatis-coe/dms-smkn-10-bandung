@@ -3,6 +3,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { ChevronUp, ChevronDown } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu"
 
 export interface Column<T> {
   header: string
@@ -11,6 +12,8 @@ export interface Column<T> {
   sortable?: boolean
   width?: number
   render?: (row: T) => React.ReactNode
+  filterType?: "text" | "dropdown"
+  filterOptions?: { label: string; value: string }[]
 }
 
 interface TableProps<T> {
@@ -93,13 +96,13 @@ export function Table<T extends Record<string, any>>({
                     <div className="flex flex-col items-start gap-4">
                       <button
                         className={cn(
-                          "flex items-center gap-1",
+                          "flex items-center gap-1 text-left pl-1",
                           sortable && !isLoading
                             ? "hover:opacity-80 cursor-pointer"
-                            : "cursor-default opacity-50"
+                            : "cursor-default"
                         )}
                         onClick={() => handleSort(col)}
-                        disabled={!sortable || isLoading}
+                        disabled={isLoading}
                       >
                         {col.header}
 
@@ -109,22 +112,63 @@ export function Table<T extends Record<string, any>>({
                               ? <ChevronUp className="w-4 h-4" />
                               : <ChevronDown className="w-4 h-4" />
                           ) : (
-                            <ChevronUp className="w-3 h-3 opacity-20" />
+                            <ChevronUp className="w-3 h-3 opacity-60" />
                           )
                         )}
                       </button>
 
                       {col.enableFilter && onFilterChange && (
-                        <input
-                          disabled={isLoading}
-                          type="text"
-                          className="h-9 w-full rounded border px-4 text-xs bg-background disabled:opacity-50"
-                          placeholder="Filter…"
-                          value={filters?.[col.key as string] ?? ""}
-                          onChange={(e) =>
-                            onFilterChange(col.key, e.target.value)
-                          }
-                        />
+                        col.filterType === "dropdown" && col.filterOptions ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              disabled={isLoading}
+                              className={cn(
+                                "h-9 w-full rounded border px-3 text-xs bg-background text-left flex items-center justify-between",
+                                isLoading && "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              <span>
+                                {filters?.[col.key as string]
+                                  ? col.filterOptions.find(
+                                      o => o.value === filters[col.key as string]
+                                    )?.label
+                                  : <div className="text-foreground/50">Filter…</div>}
+                              </span>
+                              <ChevronDown className="h-3 w-3 opacity-60" />
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
+                              <DropdownMenuItem
+                                onClick={() => onFilterChange(col.key, "")}
+                              >
+                                All
+                              </DropdownMenuItem>
+
+                              {col.filterOptions.map(option => (
+                                <DropdownMenuItem
+                                  key={option.value}
+                                  onClick={() =>
+                                    onFilterChange(col.key, option.value)
+                                  }
+                                >
+                                  {option.label}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          /* DEFAULT TEXT FILTER */
+                          <input
+                            disabled={isLoading}
+                            type="text"
+                            className="h-9 w-full rounded border px-4 text-xs bg-background disabled:opacity-50"
+                            placeholder="Filter…"
+                            value={filters?.[col.key as string] ?? ""}
+                            onChange={(e) =>
+                              onFilterChange(col.key, e.target.value)
+                            }
+                          />
+                        )
                       )}
                     </div>
                   </th>
@@ -140,7 +184,7 @@ export function Table<T extends Record<string, any>>({
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t">
                   {columns.map((_, j) => (
-                    <td key={j} className="px-4 py-3">
+                    <td key={j} className="px-4 py-6">
                       <div className="h-4 w-full animate-pulse rounded bg-muted" />
                     </td>
                   ))}
@@ -148,7 +192,7 @@ export function Table<T extends Record<string, any>>({
               ))
             ) : data.length !== 0 ? (
               data.map((row, rIndex) => (
-                <tr key={rIndex} className="border-t hover:bg-muted/30 transition">
+                <tr key={rIndex} className={`border-t hover:bg-muted/30 transition ${rIndex % 2 === 0 && "bg-foreground/2"}`}>
                   {columns.map((col, i) => (
                     <td key={i} className="px-4 py-3">
                       {col.render ? col.render(row) : row[col.key]}
@@ -235,7 +279,7 @@ export function Table<T extends Record<string, any>>({
                 )
               }
             >
-              {[10, 25, 50, 100].map((size) => (
+              {[5,10, 25, 50, 100].map((size) => (
                 <option key={size} value={size}>
                   {size}
                 </option>

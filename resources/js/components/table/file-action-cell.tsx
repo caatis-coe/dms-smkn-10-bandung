@@ -23,9 +23,7 @@ export function FileActionsCell({ row, fileType, user }: FileActionsCellProps) {
         fileType === 'supporting' ? `${row.name} — Supporting File` : row.name;
 
     const downloadName =
-        (fileType === 'supporting' ? `${row.name}_supporting` : row.name)
-            .replace(/[^a-z0-9]/gi, '_')
-            .toLowerCase() + '.pdf';
+        (fileType === 'supporting' ? `${row.name} - File Pendukung` : row.name)
 
     if (!fileUrl) {
         return (

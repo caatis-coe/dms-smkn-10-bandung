@@ -1,3 +1,4 @@
+import DocumentController from '@/actions/App/Http/Controllers/DocumentController';
 import {
     Dialog,
     DialogContent,
@@ -5,12 +6,20 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Form, router } from '@inertiajs/react';
-import { Pencil, Trash } from 'lucide-react';
-import { useState } from 'react';
 import type { Document, User } from '@/types';
+import { Form, usePage } from '@inertiajs/react';
+import { Pencil, Trash } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import InputError from '../input-error';
 import { Button } from '../ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import FileDropzone from '../ui/file-dropzone';
+import { Spinner } from '../ui/spinner';
 
 export type ActionsCellProps = {
     row: Document;
@@ -20,6 +29,18 @@ export type ActionsCellProps = {
 export function ActionsCell({ row, user }: ActionsCellProps) {
     const canAdmin = user?.role === 'admin';
     if (!canAdmin) return null;
+    const owners = usePage().props.group_owners as string[];
+
+    const [documentType, setDocumentType] = useState(row.document_type);
+    const [documentOwner, setDocumentOwner] = useState<string | null>(
+        row.document_owner ?? null,
+    );
+
+    const mainFileRef = useRef<HTMLInputElement>(null);
+    const supportingFileRef = useRef<HTMLInputElement>(null);
+
+    const [mainFile, setMainFile] = useState<File | null>(null);
+    const [supportingFile, setSupportingFile] = useState<File | null>(null);
 
     return (
         <div className="flex items-center gap-2">
@@ -27,6 +48,11 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
             {(() => {
                 const [open, setOpen] = useState(false);
                 const [removeSupporting, setRemoveSupporting] = useState(false);
+                useEffect(() => {
+                    if (!open) return;
+                    setSupportingFile(null);
+                    setMainFile(null);
+                }, [open]);
 
                 return (
                     <Dialog open={open} onOpenChange={setOpen}>
@@ -37,214 +63,432 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                             <Pencil className="h-4 w-4 text-icon-edit" />
                         </DialogTrigger>
 
-                        <DialogContent className="flex  max-w-[95vw] flex-col sm:max-w-[80vw]">
+                        <DialogContent className="flex max-w-[95vw] flex-col sm:max-w-[80vw] max-h-[95vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Edit Document</DialogTitle>
                             </DialogHeader>
-
+                            {/* =================================================== */}
+                            {/*                  UPDATE FORM LAYOUT                 */}
+                            {/* =================================================== */}
                             <Form
-                                method="post"
-                                action={`/documents/${row.id}`}
+                                {...DocumentController.update.form({
+                                    document: row.id,
+                                })}
                                 onSuccess={() => setOpen(false)}
+                                options={{ preserveScroll: true }}
                                 className="space-y-6"
                             >
-                                <input type="hidden" name="_method" value="PUT" />
+                                {({ processing, errors }) => (
+                                    <>
+                                        <input
+                                            type="hidden"
+                                            name="_method"
+                                            value="PUT"
+                                        />
 
-                                {/* =================================================== */}
-                                {/*                TWO COLUMN FORM LAYOUT              */}
-                                {/* =================================================== */}
-                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    {/* ================= LEFT COLUMN ================= */}
-                                    <div className="space-y-4 border rounded-lg p-4">
-                                        <h3 className="font-semibold mb-2 text-lg">
-                                            Informasi Dokumen
-                                        </h3>
+                                        <div className="grid grid-cols-1 gap-4 md:gap-9 md:grid-cols-2 rounded-lg border p-4 ">
+                                            {/* ================= LEFT COLUMN ================= */}
+                                            <div className="space-y-4 ">
+                                                {/* ID */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Nomor Dokumen
+                                                    </label>
+                                                    <input
+                                                        name="id"
+                                                        defaultValue={row.id}
+                                                        className="rounded border p-2"
+                                                    />
+                                                    <InputError
+                                                        message={errors.id}
+                                                    />
+                                                </div>
 
-                                        {/* ID */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">
-                                                Nomor Dokumen
-                                            </label>
-                                            <input
-                                                name="id"
-                                                defaultValue={row.id}
-                                                className="rounded border p-2"
-                                            />
+                                                {/* NAME */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Nama Dokumen
+                                                    </label>
+                                                    <input
+                                                        name="name"
+                                                        defaultValue={row.name}
+                                                        className="rounded border p-2"
+                                                    />
+                                                    <InputError
+                                                        message={errors.name}
+                                                    />
+                                                </div>
+
+                                                {/* STANDARD */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Standar
+                                                    </label>
+                                                    <input
+                                                        name="standard"
+                                                        defaultValue={
+                                                            row.standard ?? ''
+                                                        }
+                                                        className="rounded border p-2"
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            errors.standard
+                                                        }
+                                                    />
+                                                </div>
+
+                                                {/* CLAUSE */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Klausul
+                                                    </label>
+                                                    <input
+                                                        name="clause"
+                                                        defaultValue={
+                                                            row.clause ?? ''
+                                                        }
+                                                        className="rounded border p-2"
+                                                    />
+                                                    <InputError
+                                                        message={errors.clause}
+                                                    />
+                                                </div>
+
+                                                {/* DOCUMENT TYPE */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Jenis Dokumen
+                                                    </label>
+
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2 text-left">
+                                                            {documentType ===
+                                                            'prosedur'
+                                                                ? 'Prosedur'
+                                                                : documentType ===
+                                                                    'instruksi'
+                                                                  ? 'Instruksi'
+                                                                  : 'Dokumen Lain'}
+                                                        </DropdownMenuTrigger>
+
+                                                        <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setDocumentType(
+                                                                        'prosedur',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Prosedur
+                                                            </DropdownMenuItem>
+
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setDocumentType(
+                                                                        'instruksi',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Instruksi
+                                                            </DropdownMenuItem>
+
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setDocumentType(
+                                                                        'dokumen_lain',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Dokumen Lain
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <InputError
+                                                        message={
+                                                            errors.document_type
+                                                        }
+                                                    />
+
+                                                    {/* Hidden input for Laravel */}
+                                                    <input
+                                                        type="hidden"
+                                                        name="document_type"
+                                                        value={documentType}
+                                                    />
+                                                </div>
+
+                                                {/* DOCUMENT OWNER */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Pemilik Dokumen
+                                                    </label>
+
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2 text-left">
+                                                            <span>
+                                                                {documentOwner ??
+                                                                    'Pilih Pemilik Dokumen'}
+                                                            </span>
+                                                        </DropdownMenuTrigger>
+
+                                                        <DropdownMenuContent className="max-h-64 w-full min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto">
+                                                            {owners.map(
+                                                                (owner) => (
+                                                                    <DropdownMenuItem
+                                                                        key={
+                                                                            owner
+                                                                        }
+                                                                        onClick={() =>
+                                                                            setDocumentOwner(
+                                                                                owner,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {owner}
+                                                                    </DropdownMenuItem>
+                                                                ),
+                                                            )}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <InputError
+                                                        message={
+                                                            errors.document_owner
+                                                        }
+                                                    />
+                                                    <input
+                                                        type="hidden"
+                                                        name="document_owner"
+                                                        value={
+                                                            documentOwner ?? ''
+                                                        }
+                                                    />
+                                                </div>
+
+                                                {/* REVISION */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Revisi
+                                                    </label>
+                                                    <input
+                                                        name="revision"
+                                                        defaultValue={
+                                                            row.revision ?? ''
+                                                        }
+                                                        className="rounded border p-2"
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            errors.revision
+                                                        }
+                                                    />
+                                                </div>
+
+                                                {/* EFFECTIVE DATE */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Tanggal Efektif
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        name="effective_date"
+                                                        defaultValue={
+                                                            row.effective_date
+                                                                ? new Date(
+                                                                      row.effective_date,
+                                                                  )
+                                                                      .toISOString()
+                                                                      .split(
+                                                                          'T',
+                                                                      )[0]
+                                                                : ''
+                                                        }
+                                                        className="rounded border p-2"
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            errors.effective_date
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* ================= RIGHT COLUMN ================= */}
+                                            <div className="space-y-4 ">
+                                                {/* APPLICATION LINK */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Link Aplikasi
+                                                    </label>
+                                                    <input
+                                                        name="application_link"
+                                                        defaultValue={
+                                                            row.application_link ??
+                                                            ''
+                                                        }
+                                                        className="rounded border p-2"
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            errors.application_link
+                                                        }
+                                                    />
+                                                </div>
+                                                {/* ================= MAIN FILE ================= */}
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium">
+                                                        Ubah File Utama
+                                                        (optional)
+                                                    </label>
+
+                                                    <FileDropzone
+                                                        value={mainFile}
+                                                        onChange={(file) => {
+                                                            setMainFile(file);
+                                                            if (
+                                                                mainFileRef.current &&
+                                                                file
+                                                            ) {
+                                                                const dt =
+                                                                    new DataTransfer();
+                                                                dt.items.add(
+                                                                    file,
+                                                                );
+                                                                mainFileRef.current.files =
+                                                                    dt.files;
+                                                            }
+                                                        }}
+                                                    />
+                                                    <InputError
+                                                        message={errors.file}
+                                                    />
+
+                                                    <input
+                                                        ref={mainFileRef}
+                                                        type="file"
+                                                        name="file"
+                                                        className="hidden"
+                                                    />
+                                                </div>
+
+                                                {/* ================= SUPPORTING FILE ================= */}
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium">
+                                                        Ubah File Pendukung
+                                                        (optional)
+                                                    </label>
+
+                                                    <FileDropzone
+                                                        value={supportingFile}
+                                                        onChange={(file) => {
+                                                            setSupportingFile(
+                                                                file,
+                                                            );
+
+                                                            if (file) {
+                                                                setRemoveSupporting(
+                                                                    false,
+                                                                );
+                                                            }
+
+                                                            if (
+                                                                supportingFileRef.current &&
+                                                                file
+                                                            ) {
+                                                                const dt =
+                                                                    new DataTransfer();
+                                                                dt.items.add(
+                                                                    file,
+                                                                );
+                                                                supportingFileRef.current.files =
+                                                                    dt.files;
+                                                            }
+
+                                                            if (
+                                                                !file &&
+                                                                supportingFileRef.current
+                                                            ) {
+                                                                supportingFileRef.current.value =
+                                                                    '';
+                                                            }
+                                                        }}
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            errors.supporting_file
+                                                        }
+                                                    />
+                                                    <input
+                                                        ref={supportingFileRef}
+                                                        type="file"
+                                                        name="supporting_file"
+                                                        className="hidden"
+                                                    />
+                                                </div>
+
+                                                {/* ================= REMOVE SUPPORTING FILE ================= */}
+                                                {row.supporting_file_path && (
+                                                    <label
+                                                        className={`flex items-center gap-2 text-sm ${supportingFile ? 'text-muted-foreground' : ''} `}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            name="remove_supporting_file"
+                                                            value="1"
+                                                            checked={
+                                                                removeSupporting
+                                                            }
+                                                            disabled={
+                                                                !!supportingFile
+                                                            }
+                                                            onChange={(e) => {
+                                                                const checked =
+                                                                    e.target
+                                                                        .checked;
+                                                                setRemoveSupporting(
+                                                                    checked,
+                                                                );
+
+                                                                // 🔑 if user checks "remove", clear file
+                                                                if (checked) {
+                                                                    setSupportingFile(
+                                                                        null,
+                                                                    );
+                                                                    if (
+                                                                        supportingFileRef.current
+                                                                    ) {
+                                                                        supportingFileRef.current.value =
+                                                                            '';
+                                                                    }
+                                                                }
+                                                            }}
+                                                        />
+                                                        Hapus File Pendukung
+                                                    </label>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        {/* NAME */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">
-                                                Nama Dokumen
-                                            </label>
-                                            <input
-                                                name="name"
-                                                defaultValue={row.name}
-                                                className="rounded border p-2"
-                                            />
-                                        </div>
-
-                                        {/* STANDARD */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">Standar</label>
-                                            <input
-                                                name="standard"
-                                                defaultValue={row.standard ?? ""}
-                                                className="rounded border p-2"
-                                            />
-                                        </div>
-
-                                        {/* CLAUSE */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">Klausul</label>
-                                            <input
-                                                name="clause"
-                                                defaultValue={row.clause ?? ""}
-                                                className="rounded border p-2"
-                                            />
-                                        </div>
-
-                                        {/* DOCUMENT TYPE */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">
-                                                Jenis Dokumen
-                                            </label>
-                                            <select
-                                                name="document_type"
-                                                defaultValue={row.document_type}
-                                                className="rounded border p-2"
+                                        {/* ================= SAVE BUTTONS ================= */}
+                                        <div className="flex justify-end gap-3">
+                                            <Button
+                                                variant="outline"
+                                                type="button"
+                                                onClick={() => setOpen(false)}
                                             >
-                                                <option value="prosedur">Prosedur</option>
-                                                <option value="instruksi">Instruksi</option>
-                                                <option value="dokumen_lain">Dokumen Lain</option>
-                                            </select>
+                                                Cancel
+                                            </Button>
+
+                                            <Button
+                                                type="submit"
+                                                variant="default"
+                                            >
+                                                {processing && <Spinner />}
+                                                Save Changes
+                                            </Button>
                                         </div>
-
-                                        {/* DOCUMENT OWNER */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">
-                                                Pemilik Dokumen
-                                            </label>
-                                            <input
-                                                name="document_owner"
-                                                placeholder="Group Owner ID"
-                                                defaultValue={row.document_owner ?? ""}
-                                                className="rounded border p-2"
-                                            />
-                                        </div>
-
-                                        {/* REVISION */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">Revisi</label>
-                                            <input
-                                                name="revision"
-                                                defaultValue={row.revision ?? ""}
-                                                className="rounded border p-2"
-                                            />
-                                        </div>
-
-                                        {/* EFFECTIVE DATE */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">
-                                                Tanggal Efektif
-                                            </label>
-                                            <input
-                                                type="date"
-                                                name="effective_date"
-                                                defaultValue={row.effective_date ?? ""}
-                                                className="rounded border p-2"
-                                            />
-                                        </div>
-
-                                        {/* APPLICATION LINK */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="font-medium text-sm">Link Aplikasi</label>
-                                            <input
-                                                name="application_link"
-                                                defaultValue={row.application_link ?? ""}
-                                                className="rounded border p-2"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* ================= RIGHT COLUMN ================= */}
-                                    <div className="space-y-6 border rounded-lg p-4">
-                                        <h3 className="font-semibold mb-2 text-lg">
-                                            File Dokumen
-                                        </h3>
-
-                                        {/* MAIN FILE */}
-                                        <div className="space-y-2">
-                                            <label className="font-medium text-sm">
-                                                Ubah File Utama (optional)
-                                            </label>
-
-                                            <FileDropzone
-                                                onFileSelect={(file) => {
-                                                    const input = document.querySelector<HTMLInputElement>(
-                                                        'input[name="file"]',
-                                                    );
-                                                    if (input) {
-                                                        const dt = new DataTransfer();
-                                                        if (file) dt.items.add(file);
-                                                        input.files = dt.files;
-                                                    }
-                                                }}
-                                            />
-
-                                            <input type="file" name="file" className="hidden" />
-                                        </div>
-
-                                        {/* SUPPORTING FILE */}
-                                        <div className="space-y-2">
-                                            <label className="font-medium text-sm">
-                                                Ubah File Pendukung (optional)
-                                            </label>
-
-                                            <FileDropzone
-                                                onFileSelect={(file) => {
-                                                    const input = document.querySelector<HTMLInputElement>(
-                                                        'input[name="supporting_file"]',
-                                                    );
-                                                    if (input) {
-                                                        const dt = new DataTransfer();
-                                                        if (file) dt.items.add(file);
-                                                        input.files = dt.files;
-                                                    }
-                                                }}
-                                            />
-
-                                            <input type="file" name="supporting_file" className="hidden" />
-                                        </div>
-
-                                        {/* REMOVE SUPPORTING FILE */}
-                                        <label className="flex items-center gap-2 text-sm">
-                                            <input
-                                                type="checkbox"
-                                                name="remove_supporting_file"
-                                                value="1"
-                                                checked={removeSupporting}
-                                                onChange={(e) => setRemoveSupporting(e.target.checked)}
-                                            />
-                                            Hapus File Pendukung
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* ================= SAVE BUTTONS ================= */}
-                                <div className="flex justify-end gap-3">
-                                    <Button
-                                        variant="outline"
-                                        type="button"
-                                        onClick={() => setOpen(false)}
-                                    >
-                                        Cancel
-                                    </Button>
-
-                                    <Button type="submit" variant="default">
-                                        Save Changes
-                                    </Button>
-                                </div>
+                                    </>
+                                )}
                             </Form>
                         </DialogContent>
                     </Dialog>
@@ -254,9 +498,10 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
             {/* ==================== DELETE BUTTON ==================== */}
             {(() => {
                 const [open, setOpen] = useState(false);
+
                 return (
                     <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger className="cursor-pointer rounded p-1 transition hover:bg-icon-delete-hover">
+                        <DialogTrigger className="hover:bg-icon-delete-hover cursor-pointer rounded p-1 transition hover:bg-foreground/5">
                             <Trash className="h-4 w-4 text-icon-delete" />
                         </DialogTrigger>
 
@@ -264,28 +509,45 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                             <DialogHeader>
                                 <DialogTitle>Delete Document</DialogTitle>
                             </DialogHeader>
+                            
 
-                            <p className="text-sm">
-                                Are you sure you want to delete{" "}
-                                <strong>{row.name}</strong>? This action cannot be undone.
-                            </p>
+                            <Form
+                                {...DocumentController.destroy.form({
+                                    document: row.id,
+                                })}
+                                onSuccess={() => setOpen(false)}
+                                options={{ preserveScroll: true }}
+                                className="space-y-6"
+                            >
+                                {({ processing }) => (
+                                    <>
+                                        <p className="text-sm">
+                                            Are you sure you want to delete{' '}
+                                            <strong>{row.name}</strong>? This
+                                            action cannot be undone.
+                                        </p>
 
-                            <div className="mt-6 flex justify-end gap-3">
-                                <Button variant="outline" onClick={() => setOpen(false)}>
-                                    Cancel
-                                </Button>
+                                        <div className="mt-6 flex justify-end gap-3">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setOpen(false)}
+                                            >
+                                                Cancel
+                                            </Button>
 
-                                <Button
-                                    variant="destructive"
-                                    onClick={() =>
-                                        router.delete(`/documents/${row.id}`, {
-                                            onFinish: () => setOpen(false),
-                                        })
-                                    }
-                                >
-                                    Delete
-                                </Button>
-                            </div>
+                                            <Button
+                                                type="submit"
+                                                variant="destructive"
+                                                disabled={processing}
+                                            >
+                                                {processing && <Spinner />}
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </Form>
                         </DialogContent>
                     </Dialog>
                 );

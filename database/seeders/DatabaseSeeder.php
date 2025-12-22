@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             GroupOwnerSeeder::class,
+            BusinessProcessNodeSeeder::class,
+            BusinessProcessSeeder::class,
+            ConfigSeeder::class,
             UserSeeder::class,
             DocumentSeeder::class, 
         ]);

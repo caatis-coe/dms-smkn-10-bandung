@@ -73,7 +73,7 @@ class DocumentController extends Controller
             'standard' => 'nullable|string|max:255',
             'clause' => 'nullable|string|max:255',
             'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
-            'document_owner' => 'nullable|exists:group_owners,id',
+            'document_owner' => 'nullable|exists:group_owners,name',
             'revision' => 'nullable|string|max:50',
             'effective_date' => 'nullable|date',
             'application_link' => 'nullable|url',
@@ -100,7 +100,7 @@ class DocumentController extends Controller
         ]);
 
         return redirect()
-            ->route('documents.index')
+            ->route('document.index')
             ->with('success', 'Document uploaded successfully.');
     }
 
@@ -108,12 +108,12 @@ class DocumentController extends Controller
     public function update(Request $request, Document $document)
     {
         $validated = $request->validate([
-            'id' => 'nullable|string|unique:documents,id,' . $document->id,
+            'id' => 'required|string|unique:documents,id,' . $document->id,
             'name' => 'required|string|max:255',
             'standard' => 'nullable|string|max:255',
             'clause' => 'nullable|string|max:255',
             'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
-            'document_owner' => 'nullable|exists:group_owners,id',
+            'document_owner' => 'nullable|exists:group_owners,name',
             'revision' => 'nullable|string|max:50',
             'effective_date' => 'nullable|date',
             'application_link' => 'nullable|url',
@@ -131,7 +131,11 @@ class DocumentController extends Controller
         /* ================= Main File ================= */
 
         if ($request->hasFile('file')) {
-            Storage::disk('public')->delete($document->file_path);
+            if (
+                $document->file_path &&
+                Storage::disk('public')->exists($document->file_path)
+            ) Storage::disk('public')->delete($document->file_path);
+
             $data['file_path'] = $request
                 ->file('file')
                 ->store('documents', 'public');
@@ -140,10 +144,18 @@ class DocumentController extends Controller
         /* ================= Supporting File ================= */
 
         if ($request->boolean('remove_supporting_file')) {
-            Storage::disk('public')->delete($document->supporting_file_path);
+            if (
+                $document->supporting_file_path &&
+                Storage::disk('public')->exists($document->supporting_file_path)
+            ) Storage::disk('public')->delete($document->supporting_file_path);
+
             $data['supporting_file_path'] = null;
         } else if ($request->hasFile('supporting_file')) {
-            Storage::disk('public')->delete($document->supporting_file_path);
+            if (
+                $document->supporting_file_path &&
+                Storage::disk('public')->exists($document->supporting_file_path)
+            ) Storage::disk('public')->delete($document->supporting_file_path);
+
 
             $data['supporting_file_path'] = $request
                 ->file('supporting_file')
@@ -158,10 +170,15 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
-        Storage::disk('public')->delete([
-            $document->file_path,
-            $document->supporting_file_path,
-        ]);
+        if (
+            $document->file_path &&
+            Storage::disk('public')->exists($document->file_path)
+        ) Storage::disk('public')->delete($document->file_path);
+        
+        if (
+            $document->supporting_file_path &&
+            Storage::disk('public')->exists($document->supporting_file_path)
+        ) Storage::disk('public')->delete($document->supporting_file_path);
 
         $document->delete();
 

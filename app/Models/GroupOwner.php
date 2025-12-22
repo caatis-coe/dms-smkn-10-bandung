@@ -16,7 +16,7 @@ class GroupOwner extends Model
     {
         return $this->hasMany(
             BusinessProcessNode::class,
-            'group_owner_name',
+            'group_owner',
             'name'
         );
     }

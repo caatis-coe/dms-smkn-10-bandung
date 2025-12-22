@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class BusinessProcessNode extends Model
 {
     protected $fillable = [
-        'group_owner_name',
+        'group_owner',
         'parent_id',
         'code',
         'name',
@@ -19,7 +19,7 @@ class BusinessProcessNode extends Model
     {
         return $this->belongsTo(
             GroupOwner::class,
-            'group_owner_name',
+            'group_owner',
             'name'
         );
     }

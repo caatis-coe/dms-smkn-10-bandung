@@ -10,6 +10,7 @@ import { dashboard } from '@/routes';
 import documentsRoute from '@/routes/document';
 import { type BreadcrumbItem, type Document, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
+import { ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -35,7 +36,6 @@ type Query = {
     per_page?: number;
 };
 
-
 export default function Document({
     documents,
     query = {},
@@ -43,7 +43,13 @@ export default function Document({
     documents: Paginated<Document>;
     query: Query;
 }) {
+
     const columns: Column<Document>[] = [
+        {
+            header: 'Nomor Dokumen',
+            key: 'id',
+            enableFilter: true,
+        },
         {
             header: 'Standar',
             key: 'standard',
@@ -63,11 +69,18 @@ export default function Document({
             render: (row) => {
                 const type = row.document_type ?? null;
                 if (!type) return '-';
-            
+
                 return type === 'dokumen_lain'
                     ? 'Dokumen Lain'
                     : type.replace(/^\w/, (c) => c.toUpperCase());
             },
+            filterType: 'dropdown',
+            filterOptions: [
+                { label: 'Prosedur', value: 'prosedur' },
+                { label: 'Instruksi', value: 'instruksi' },
+                { label: 'Dokumen Lain', value: 'dokumen_lain' },
+            ],
+            width: 120,
         },
         {
             header: 'Nama Dokumen',
@@ -78,19 +91,37 @@ export default function Document({
             header: 'Pemilik Dokumen',
             key: 'document_owner',
             enableFilter: true,
+            filterType: 'dropdown',
+            filterOptions: (usePage().props.group_owners as string[]).map((owner) => ({
+                label: owner,
+                value: owner,
+            })),
             render: (row) => row.document_owner,
         },
         {
             header: 'File Dokumen',
             key: 'file_url',
             sortable: false,
-            render: (row) => <FileActionsCell row={row} fileType='main' user={user}/>,
+            render: (row) => (
+                <FileActionsCell row={row} fileType="main" user={user} />
+            ),
+            width: 80,
         },
         {
             header: 'Data Pendukung',
             key: 'supporting_file_url',
             sortable: false,
-            render: (row) => row.supporting_file_path ? <FileActionsCell row={row} fileType='supporting' user={user}/> : "-",
+            render: (row) =>
+                row.supporting_file_path ? (
+                    <FileActionsCell
+                        row={row}
+                        fileType="supporting"
+                        user={user}
+                    />
+                ) : (
+                    <div className="text-foreground/20">-</div>
+                ),
+            width: 80,
         },
         {
             header: 'Link Aplikasi',
@@ -98,49 +129,55 @@ export default function Document({
             sortable: false,
             render: (row) =>
                 row.application_link ? (
-                    <a
-                        href={row.application_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                    >
-                        Buka
-                    </a>
+                    <div className="w-fit cursor-pointer rounded p-1 transition hover:bg-foreground/5">
+                        <a
+                            href={row.application_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <ExternalLink className="h-4 w-4 text-icon-external-link" />
+                        </a>
+                    </div>
                 ) : (
-                    'not found'
+                    <div className="text-foreground/20">-</div>
                 ),
+            width: 80,
         },
         {
             header: 'Revisi',
             key: 'revision',
-            render: (row) => row.revision ?? '-',
-            width: 80,
+            render: (row) =>
+                row.revision ?? <div className="text-foreground/20">-</div>,
+            width: 64,
         },
         {
             header: 'Tanggal Efektif',
             key: 'effective_date',
             render: (row) =>
-                row.effective_date
-                    ? convertTime(row.effective_date)
-                    : 'Undefined',
+                row.effective_date ? (
+                    convertTime(row.effective_date, 'Asia/Jakarta', {
+                        hour: undefined,
+                        minute: undefined,
+                    })
+                ) : (
+                    <div className="text-foreground/20">-</div>
+                ),
             width: 120,
+            enableFilter: true,
         },
     ];
 
-
-    
     const {
         auth: { user },
     } = usePage<SharedData>().props;
 
-
-    if (user?.role === "admin") {
+    if (user?.role === 'admin') {
         columns.push({
-            header: "Aksi",
-            key: "id",
+            header: 'Aksi',
+            key: 'id',
             sortable: false,
             render: (row) => <ActionsCell row={row} user={user} />,
-            width: 120,
+            width: 80,
         });
     }
     const [queryState, setQueryState] = useState(query);
@@ -161,6 +198,9 @@ export default function Document({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <Container>
+                    
+                </Container>
                 <Container>
                     {user?.role === 'admin' && <CreateDocumentDialog />}
                     <div className="h-2" />

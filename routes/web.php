@@ -6,7 +6,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    return redirect()->route('documents.index');
+    return redirect()->route('document.index');
 })->name('home');
 
 Route::get('document', [DocumentController::class, 'index'])

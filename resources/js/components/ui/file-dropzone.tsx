@@ -1,87 +1,89 @@
-import { useState, DragEvent } from "react";
-import { UploadCloud } from "lucide-react";
+import { useRef, useState, DragEvent } from "react";
+import { UploadCloud, X } from "lucide-react";
+
+type Props = {
+  value: File | null;
+  onChange: (file: File | null) => void;
+  accept?: string;
+};
 
 export default function FileDropzone({
-    onFileSelect,
-}: {
-    onFileSelect: (file: File | null) => void;
-}) {
-    const [isDragging, setIsDragging] = useState(false);
-    const [fileName, setFileName] = useState("");
+  value,
+  onChange,
+  accept = "application/pdf",
+}: Props) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-    const isActive = isDragging 
+  const handleFile = (file: File | null) => {
+    onChange(file);
+    if (!file && inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
 
-    const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0] ?? null;
+    handleFile(file);
+  };
+
+  return (
+    <div
+      className={`
+        relative border border-dashed rounded-xl p-10 text-center
+        cursor-pointer transition-all
+        bg-muted/30 hover:bg-muted/40
+        ${isDragging ? "border-accent bg-accent/20" : ""}
+      `}
+      onClick={() => inputRef.current?.click()}
+      onDragOver={(e) => {
         e.preventDefault();
-        setIsDragging(false);
-
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            setFileName(file.name);
-            onFileSelect(file);
-        }
-    };
-
-    const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] ?? null;
-        if (file) setFileName(file.name);
-        onFileSelect(file);
-    };
-
-    return (
-        <div
-            className={`
-                border border-border border-dashed rounded-xl p-10 text-center
-                cursor-pointer transition-all duration-200 ease-out
-
-                bg-muted/30
-                hover:bg-muted/40
-
-                ${isDragging ? "bg-accent/30 border-accent" : ""}
-                ${fileName ? "hover:bg-accent/20" : ""}
-            `}
-            onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById("hiddenFileInput")?.click()}
+        setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={handleDrop}
+    >
+      {/* ❌ Cancel Button */}
+      {value && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFile(null);
+          }}
+          className="absolute right-2 top-2 rounded-full bg-background p-1 hover:text-destructive"
         >
-            <UploadCloud
-                className={`
-                    mx-auto mb-4 h-14 w-14 transition-all duration-200
-                    ${isActive ? "text-accent" : "text-muted-foreground"}
-                `}
-            />
+          <X className="h-4 w-4" />
+        </button>
+      )}
 
-            <p
-                className={`
-                    text-lg transition-colors duration-200
-                    ${isActive ? "text-accent-foreground" : "text-foreground"}
-                `}
-            >
-                Drop files or click here
-            </p>
+      <UploadCloud
+        className={`mx-auto mb-4 h-14 w-14 ${
+          isDragging ? "text-accent" : "text-muted-foreground"
+        }`}
+      />
 
-            {/* <div className="inline-flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-md shadow cursor-pointer mt-3">
-                <span className="mr-2">📁</span>
-                Choose File
-            </div> */}
+      <p className="text-lg">
+        {value ? "File selected" : "Drop files or click here"}
+      </p>
 
-            <input
-                id="hiddenFileInput"
-                type="file"
-                className="hidden"
-                accept="application/pdf"
-                onChange={handleFilePick}
-            />
+      {value && (
+        <p className="mt-2 text-sm text-muted-foreground truncate">
+          {value.name}
+        </p>
+      )}
 
-            {fileName && (
-                <p className="mt-4 text-sm text-muted-foreground transition-opacity duration-200">
-                    {fileName}
-                </p>
-            )}
-        </div>
-    );
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(e) =>
+          handleFile(e.target.files?.[0] ?? null)
+        }
+      />
+    </div>
+  );
 }
