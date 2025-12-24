@@ -6,11 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+
 
     protected $fillable = [
-        'id',
+        'code',
         'standard',
         'clause',
         'document_type',
@@ -29,7 +28,7 @@ class Document extends Model
     protected $with = [
         'publishedBy:id,name,email,role',
         'lastUpdatedBy:id,name,email,role',
-        'owner:name',
+        'owner:id,name',
     ];
 
     protected $casts = [
@@ -55,7 +54,7 @@ class Document extends Model
 
     public function owner()
     {
-        return $this->belongsTo(GroupOwner::class, 'document_owner', 'name');
+        return $this->belongsTo(GroupOwner::class, 'document_owner', 'id');
     }
 
     /* ================= Accessors ================= */

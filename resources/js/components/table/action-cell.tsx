@@ -6,7 +6,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import type { Document, User } from '@/types';
+import type { Document, GroupOwner, User } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
 import { Pencil, Trash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -29,11 +29,11 @@ export type ActionsCellProps = {
 export function ActionsCell({ row, user }: ActionsCellProps) {
     const canAdmin = user?.role === 'admin';
     if (!canAdmin) return null;
-    const owners = usePage().props.group_owners as string[];
+    const owners = usePage().props.group_owners as GroupOwner[];
 
     const [documentType, setDocumentType] = useState(row.document_type);
-    const [documentOwner, setDocumentOwner] = useState<string | null>(
-        row.document_owner ?? null,
+    const [documentOwner, setDocumentOwner] = useState<GroupOwner | null>(
+        row.owner ?? null,
     );
 
     const mainFileRef = useRef<HTMLInputElement>(null);
@@ -95,12 +95,12 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                         Nomor Dokumen
                                                     </label>
                                                     <input
-                                                        name="id"
-                                                        defaultValue={row.id}
+                                                        name="code"
+                                                        defaultValue={row.code}
                                                         className="rounded border p-2"
                                                     />
                                                     <InputError
-                                                        message={errors.id}
+                                                        message={errors.code}
                                                     />
                                                 </div>
 
@@ -227,7 +227,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2 text-left">
                                                             <span>
-                                                                {documentOwner ??
+                                                                {documentOwner?.name ??
                                                                     'Pilih Pemilik Dokumen'}
                                                             </span>
                                                         </DropdownMenuTrigger>
@@ -237,7 +237,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                                 (owner) => (
                                                                     <DropdownMenuItem
                                                                         key={
-                                                                            owner
+                                                                            owner.id
                                                                         }
                                                                         onClick={() =>
                                                                             setDocumentOwner(
@@ -245,7 +245,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                                             )
                                                                         }
                                                                     >
-                                                                        {owner}
+                                                                        {owner.name}
                                                                     </DropdownMenuItem>
                                                                 ),
                                                             )}
@@ -260,7 +260,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                         type="hidden"
                                                         name="document_owner"
                                                         value={
-                                                            documentOwner ?? ''
+                                                            documentOwner?.id ?? ''
                                                         }
                                                     />
                                                 </div>

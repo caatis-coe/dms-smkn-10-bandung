@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('configs', function (Blueprint $table) {
-            $table->string('variable')->primary();
+            $table->id();
+            $table->string('variable')->unique();
             $table->string('value');
             $table->timestamps();
         });

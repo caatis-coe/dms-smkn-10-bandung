@@ -48,8 +48,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'group_owners' => fn() => Cache::rememberForever(
-                'group_owners:names',
-                fn () => GroupOwner::pluck('name')
+                'group_owners',
+                fn () => GroupOwner::get(['id', 'name'])
             ),
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

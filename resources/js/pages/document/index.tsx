@@ -1,4 +1,5 @@
 import CreateDocumentDialog from '@/components/create-document-dialog';
+import { StatsCarousel } from '@/components/stats-carousel';
 import { ActionsCell } from '@/components/table/action-cell';
 import { FileActionsCell } from '@/components/table/file-action-cell';
 import { Container } from '@/components/ui/container';
@@ -8,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { convertTime } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import documentsRoute from '@/routes/document';
-import { type BreadcrumbItem, type Document, type SharedData } from '@/types';
+import { GroupOwner, type BreadcrumbItem, type Document, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -36,18 +37,30 @@ type Query = {
     per_page?: number;
 };
 
+
 export default function Document({
     documents,
     query = {},
+    documentsCount,
+    groupOwnerName,
+    groupOwnerCount,
+    groupOwnerDocumentCount,
 }: {
     documents: Paginated<Document>;
     query: Query;
+    documentsCount: number;
+    groupOwnerName: string;
+    groupOwnerCount: number;
+    groupOwnerDocumentCount: {
+        name: string,
+        documents_count: number
+    }[] | null;
 }) {
 
     const columns: Column<Document>[] = [
         {
             header: 'Nomor Dokumen',
-            key: 'id',
+            key: 'code',
             enableFilter: true,
         },
         {
@@ -92,11 +105,11 @@ export default function Document({
             key: 'document_owner',
             enableFilter: true,
             filterType: 'dropdown',
-            filterOptions: (usePage().props.group_owners as string[]).map((owner) => ({
-                label: owner,
-                value: owner,
+            filterOptions: (usePage().props.group_owners as GroupOwner[]).map((owner) => ({
+                label: owner.name,
+                value: owner.name,
             })),
-            render: (row) => row.document_owner,
+            render: (row) => row?.owner?.name,
         },
         {
             header: 'File Dokumen',
@@ -198,8 +211,8 @@ export default function Document({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <Container>
-                    
+                <Container className='max-h-42 min-h-56 flex items-center group !py-7'>
+                    <StatsCarousel documentsCount={documentsCount} groupOwnerName={groupOwnerName} groupOwnerCount={groupOwnerCount} groupOwnerDocumentCount={groupOwnerDocumentCount} />
                 </Container>
                 <Container>
                     {user?.role === 'admin' && <CreateDocumentDialog />}

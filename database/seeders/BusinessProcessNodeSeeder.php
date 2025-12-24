@@ -15,13 +15,13 @@ class BusinessProcessNodeSeeder extends Seeder
     public function run(): void
     {
         // Make sure group owners exist
-        $owners = GroupOwner::pluck('name')->toArray();
+        $owners = GroupOwner::pluck('id')->toArray();
 
         if (empty($owners)) {
             return;
         }
 
-        foreach ($owners as $ownerName) {
+        foreach ($owners as $ownerId) {
 
             /**
              * =========================
@@ -29,7 +29,7 @@ class BusinessProcessNodeSeeder extends Seeder
              * =========================
              */
             $chapter1 = BusinessProcessNode::create([
-                'group_owner'      => $ownerName,
+                'group_owner'      => $ownerId,
                 'parent_id'        => null,
                 'code'             => '1.0',
                 'name'             => 'Bagian Dari Direktur',
@@ -38,7 +38,7 @@ class BusinessProcessNodeSeeder extends Seeder
             ]);
 
             BusinessProcessNode::create([
-                'group_owner'      => $ownerName,
+                'group_owner'      => $ownerId,
                 'parent_id'        => $chapter1->id,
                 'code'             => '1.1',
                 'name'             => 'Kepala Urusan',
@@ -47,7 +47,7 @@ class BusinessProcessNodeSeeder extends Seeder
             ]);
 
             BusinessProcessNode::create([
-                'group_owner'      => $ownerName,
+                'group_owner'      => $ownerId,
                 'parent_id'        => $chapter1->id,
                 'code'             => '1.2',
                 'name'             => 'Sekretaris',
@@ -61,7 +61,7 @@ class BusinessProcessNodeSeeder extends Seeder
              * =========================
              */
             BusinessProcessNode::create([
-                'group_owner'      => $ownerName,
+                'group_owner'      => $ownerId,
                 'parent_id'        => null,
                 'code'             => '2.0',
                 'name'             => 'Bagian Dari Anggota',
@@ -75,7 +75,7 @@ class BusinessProcessNodeSeeder extends Seeder
              * =========================
              */
             BusinessProcessNode::create([
-                'group_owner'      => $ownerName,
+                'group_owner'      => $ownerId,
                 'parent_id'        => null,
                 'code'             => '3.0',
                 'name'             => 'Bagian Lainnya',

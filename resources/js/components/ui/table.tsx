@@ -44,7 +44,7 @@ export function Table<T extends Record<string, any>>({
   page = 1,
   totalPages = 1,
   onPageChange,
-  perPage = 10,
+  perPage = 5,
   onPageSizeChange
 }: TableProps<T>) {
 
@@ -271,7 +271,7 @@ export function Table<T extends Record<string, any>>({
             <span>Rows:</span>
             <select
               disabled={isLoading}
-              className="px-2 py-1 border rounded bg-background disabled:opacity-50"
+              className="px-2 py-1 border-1 rounded bg-background disabled:opacity-50"
               value={perPage}
               onChange={(e) =>
                 triggerPagination(() =>

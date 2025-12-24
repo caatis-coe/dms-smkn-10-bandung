@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('group_owners', function (Blueprint $table) {
-            $table->string('name')->primary();
+            $table->id();
+            $table->string('name')->unique();
             $table->timestamps();
         });
     }

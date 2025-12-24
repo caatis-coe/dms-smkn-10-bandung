@@ -11,16 +11,14 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('documents', function (Blueprint $table) {
-            // Existing columns (kept)
-            $table->string('id')->primary();
+            $table->id();
+            $table->string('code')->unique();
             $table->string('standard')->nullable();
             $table->string('clause')->nullable();
             $table->enum('document_type', ['prosedur', 'instruksi', 'dokumen_lain']);
             $table->string('name');
-            $table->string('document_owner')->nullable();
-            $table->foreign('document_owner')
-                ->references('name')
-                ->on('group_owners')
+            $table->foreignId('document_owner')->nullable()
+                ->constrained('group_owners')
                 ->nullOnDelete();
             $table->string('file_path');
             $table->string('supporting_file_path')->nullable();

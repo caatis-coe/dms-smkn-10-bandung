@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class GroupOwner extends Model
 {
-    protected $primaryKey = 'name';
-    public $incrementing = false;
-    protected $keyType = 'string';
 
     protected $fillable = ['name'];
+
+    public function document(){
+        $this->hasMany(Document::class, 'document_owner', 'name');
+    }
 
     public function bpNodes()
     {

@@ -13,17 +13,23 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, FileText } from 'lucide-react';
+import { BookOpen, Folder, FileText, BriefcaseBusiness } from 'lucide-react';
 import AppLogo from './app-logo';
 import document from '@/routes/document';
 import AppearanceTabs from '@/components/appearance-tabs';
+import businessProcess from '@/routes/business-process';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Document',
+        title: 'Dokumen',
         href: document.index().url,
         icon: FileText,
     },
+    {
+        title: 'Proses Bisnis',
+        href: businessProcess.index().url,
+        icon: BriefcaseBusiness,
+    }
 ];
 
 const footerNavItems: NavItem[] = [

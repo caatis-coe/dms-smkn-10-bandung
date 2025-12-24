@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Config;
 use App\Models\Document;
+use App\Models\GroupOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -16,11 +19,11 @@ class DocumentController extends Controller
             'sort' => $request->get('sort'),
             'direction' => $request->get('direction', 'asc'),
             'filters' => $request->get('filters', []),
-            'per_page' => $request->get('per_page', 10),
+            'per_page' => $request->get('per_page', 5),
         ];
 
         $directFilters = [
-            'id',
+            'code',
             'name',
             'standard',
             'clause',
@@ -59,21 +62,50 @@ class DocumentController extends Controller
             ->paginate($query['per_page'] ?? 10)
             ->withQueryString();
 
+        $documentsCount = Cache::rememberForever(
+            'documents_count',
+            fn() => Document::query()->count()
+        );
+        $groupOwnerName = Config::where('variable', 'group_owner')->first()->value ?? "NaN";
+        $groupOwnerCount = GroupOwner::query()->count();
+        $groupOwnerDocumentCount = Cache::rememberForever(
+            'group_owner_document_count',
+            fn() => GroupOwner::leftJoin(
+                'documents',
+                'group_owners.id',
+                '=',
+                'documents.document_owner'
+            )
+            ->select(
+                'group_owners.name',
+                \DB::raw('COUNT(documents.id) as documents_count')
+            )
+            ->groupBy('group_owners.name')
+            ->get());
+        
+ 
+
         return Inertia::render('document/index', [
+            'documentsCount' => $documentsCount,
+            'groupOwnerName' => $groupOwnerName,
+            'groupOwnerCount' => $groupOwnerCount,
+            'groupOwnerDocumentCount' => $groupOwnerDocumentCount,
             'documents' => $documents,
             'query' => $query,
         ]);
+        
+        
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|string|unique:documents,id',
+            'code' => 'required|string|unique:documents,code',
             'name' => 'required|string|max:255',
             'standard' => 'nullable|string|max:255',
             'clause' => 'nullable|string|max:255',
             'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
-            'document_owner' => 'nullable|exists:group_owners,name',
+            'document_owner' => 'nullable|exists:group_owners,id',
             'revision' => 'nullable|string|max:50',
             'effective_date' => 'nullable|date',
             'application_link' => 'nullable|url',
@@ -108,12 +140,12 @@ class DocumentController extends Controller
     public function update(Request $request, Document $document)
     {
         $validated = $request->validate([
-            'id' => 'required|string|unique:documents,id,' . $document->id,
+            'code' => 'required|string|unique:documents,code,' . $document->id,
             'name' => 'required|string|max:255',
             'standard' => 'nullable|string|max:255',
             'clause' => 'nullable|string|max:255',
             'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
-            'document_owner' => 'nullable|exists:group_owners,name',
+            'document_owner' => 'nullable|exists:group_owners,id',
             'revision' => 'nullable|string|max:50',
             'effective_date' => 'nullable|date',
             'application_link' => 'nullable|url',

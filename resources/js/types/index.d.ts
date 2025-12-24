@@ -30,6 +30,26 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+type GroupOwner = {
+    id: number;
+    name: string;
+};
+
+type BusinessProcess = {
+    id: number;
+    name: string;
+    file_path: string;
+};
+
+type ProcessNode = {
+    id: number;
+    code: string;
+    name: string;
+    level: number;
+    children?: ProcessNode[];
+    processes: BusinessProcess[];
+};
+
 export interface User {
     id: number;
     name: string;
@@ -44,8 +64,8 @@ export interface User {
 }
 
 export interface Document {
-    id: string;
-
+    id: number;
+    code: string;
     // ISO / metadata
     standard?: string | null;
     clause?: string | null;
@@ -58,6 +78,7 @@ export interface Document {
 
     // Relations
     document_owner?: string;
+    owner?: GroupOwner;
     published_by?: User;
     last_updated_by?: User;
 

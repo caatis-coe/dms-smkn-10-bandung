@@ -15,10 +15,8 @@ return new class extends Migration
             $table->id();
         
             // STRING FK → group_owners.name
-            $table->string('group_owner');
-            $table->foreign('group_owner')
-                ->references('name')
-                ->on('group_owners')
+
+            $table->foreignId('group_owner')->nullable()->constrained('group_owners')
                 ->cascadeOnDelete();
         
             // Self-referencing hierarchy

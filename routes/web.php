@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BusinessProcessController;
 use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,11 +30,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
 
-    Route::prefix()->group(function () {
-        
+    Route::prefix('business-process')->group(function () {
+        Route::get('', [BusinessProcessController::class, 'index'])
+            ->name('business-process.index');
+
+        Route::post('', [BusinessProcessController::class, 'store'])
+            ->name('business-process.store');
+
+        Route::put('{businessProcess}', [BusinessProcessController::class, 'update'])
+            ->name('business-process.update');
+
+        Route::delete('{businessProcess}', [BusinessProcessController::class, 'destroy'])
+            ->name('business-process.destroy');
     });
-
-
 });
 
 

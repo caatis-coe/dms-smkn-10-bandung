@@ -18,7 +18,7 @@ class DocumentSeeder extends Seeder
         Storage::disk('public')->makeDirectory('supporting-documents');
 
         $users = User::pluck('id')->toArray();
-        $owners = GroupOwner::pluck('name')->toArray();
+        $owners = GroupOwner::pluck('id')->toArray();
 
         $standards = [
             'Dokumen ISO 21001:2018',
@@ -49,7 +49,7 @@ class DocumentSeeder extends Seeder
             $this->generatePdf("Supporting File for {$i}", $supportingFile);
 
             Document::create([
-                'id'                   => $uuid,
+                'code'                   => $uuid,
                 'name'                 => "Sample Document {$i}",
                 'standard'             => $standards[array_rand($standards)],
                 'clause'               => $clauses[array_rand($clauses)],

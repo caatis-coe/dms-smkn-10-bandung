@@ -18,6 +18,7 @@ import { Form, usePage } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import InputError from './input-error';
 import { Spinner } from './ui/spinner';
+import { GroupOwner } from '@/types';
 
 export default function CreateDocumentDialog() {
     const [open, setOpen] = useState(false);
@@ -27,7 +28,7 @@ export default function CreateDocumentDialog() {
         'prosedur' | 'instruksi' | 'dokumen_lain'
     >('prosedur');
 
-    const [documentOwner, setDocumentOwner] = useState<string | null>(null);
+    const [documentOwner, setDocumentOwner] = useState<GroupOwner | null>(null);
 
     const [mainFile, setMainFile] = useState<File | null>(null);
     const [supportingFile, setSupportingFile] = useState<File | null>(null);
@@ -35,7 +36,7 @@ export default function CreateDocumentDialog() {
     const mainFileRef = useRef<HTMLInputElement>(null);
     const supportingFileRef = useRef<HTMLInputElement>(null);
 
-    const owners = usePage().props.group_owners as string[];
+    const owners = usePage().props.group_owners as GroupOwner[];
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -70,11 +71,11 @@ export default function CreateDocumentDialog() {
                                             Nomor Dokumen
                                         </label>
                                         <input
-                                            name="id"
+                                            name="code"
                                             className="rounded border p-2"
                                             required
                                         />
-                                        <InputError message={errors.id} />
+                                        <InputError message={errors.code} />
                                     </div>
 
                                     <div className="flex flex-col gap-1">
@@ -175,21 +176,21 @@ export default function CreateDocumentDialog() {
 
                                         <DropdownMenu>
                                             <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2">
-                                                {documentOwner ??
+                                                {documentOwner?.name ??
                                                     'Pilih Pemilik Dokumen'}
                                             </DropdownMenuTrigger>
 
                                             <DropdownMenuContent className="max-h-64 w-full min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto">
                                                 {owners.map((owner) => (
                                                     <DropdownMenuItem
-                                                        key={owner}
+                                                        key={owner.id}
                                                         onClick={() =>
                                                             setDocumentOwner(
                                                                 owner,
                                                             )
                                                         }
                                                     >
-                                                        {owner}
+                                                        {owner.name}
                                                     </DropdownMenuItem>
                                                 ))}
                                             </DropdownMenuContent>
@@ -200,7 +201,7 @@ export default function CreateDocumentDialog() {
                                         <input
                                             type="hidden"
                                             name="document_owner"
-                                            value={documentOwner ?? ''}
+                                            value={documentOwner?.id  ?? ''}
                                         />
                                     </div>
 
