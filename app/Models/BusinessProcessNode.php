@@ -18,10 +18,16 @@ class BusinessProcessNode extends Model
     public function groupOwner()
     {
         return $this->belongsTo(
-            GroupOwner::class,
-            'group_owner',
-            'name'
+            GroupOwner::class
         );
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($node) {
+            $node->children->each->delete();
+            $node->processes->each->delete();
+        });
     }
 
     public function parent()

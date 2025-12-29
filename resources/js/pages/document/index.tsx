@@ -42,14 +42,12 @@ export default function Document({
     documents,
     query = {},
     documentsCount,
-    groupOwnerName,
     groupOwnerCount,
     groupOwnerDocumentCount,
 }: {
     documents: Paginated<Document>;
     query: Query;
     documentsCount: number;
-    groupOwnerName: string;
     groupOwnerCount: number;
     groupOwnerDocumentCount: {
         name: string,
@@ -147,6 +145,7 @@ export default function Document({
                             href={row.application_link}
                             target="_blank"
                             rel="noopener noreferrer"
+                            title='Tautan Dokumen'
                         >
                             <ExternalLink className="h-4 w-4 text-icon-external-link" />
                         </a>
@@ -193,6 +192,7 @@ export default function Document({
             width: 80,
         });
     }
+    const groupOwnerName = usePage().props.group_owner_title_name as string;
     const [queryState, setQueryState] = useState(query);
 
     useEffect(() => {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Config;
 use App\Models\GroupOwner;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -51,6 +52,7 @@ class HandleInertiaRequests extends Middleware
                 'group_owners',
                 fn () => GroupOwner::get(['id', 'name'])
             ),
+            'group_owner_title_name' => fn() => Config::where('variable', 'group_owner')->first()->value ?? "NaN",
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

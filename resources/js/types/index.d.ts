@@ -46,6 +46,7 @@ type ProcessNode = {
     code: string;
     name: string;
     level: number;
+    parent_id: number | null;
     children?: ProcessNode[];
     processes: BusinessProcess[];
 };

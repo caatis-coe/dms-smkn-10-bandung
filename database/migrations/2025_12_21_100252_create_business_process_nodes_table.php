@@ -32,7 +32,7 @@ return new class extends Migration
         
             $table->timestamps();
         
-            $table->unique(['group_owner', 'code']);
+            // $table->unique(['group_owner', 'code']);
         });
         
     }

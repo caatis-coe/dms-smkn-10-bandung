@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
         
             $table->foreignId('business_process_node_id')
-                ->constrained()
+                ->constrained('business_process_nodes')
                 ->cascadeOnDelete();
         
             $table->string('name');

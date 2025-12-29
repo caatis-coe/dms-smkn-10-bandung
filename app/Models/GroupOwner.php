@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Observers\GroupOwnerObserver;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+#[ObservedBy(GroupOwnerObserver::class)]
 class GroupOwner extends Model
 {
 

@@ -93,7 +93,7 @@ function StatCard({ item, colorVar }: { item: Stat; colorVar: string }) {
 
 const responsive = {
     desktop: {
-        breakpoint: { max: 2048, min: 1600 },
+        breakpoint: { max: 9560, min: 1600 },
         items: 5,
         partialVisibilityGutter: 20,
     },
@@ -144,9 +144,8 @@ export function StatsCarousel({
             });
         });
     }
-
+    
     const stats = dummyStats.length >= 3 ? dummyStats : dummyStats.slice(0, 3);
-
     return (
         <div className="w-full">
             <Carousel
@@ -157,7 +156,7 @@ export function StatsCarousel({
                 draggable
                 swipeable
                 focusOnSelect
-                infinite
+                infinite={stats.length > 4}
                 customDot={<CarouselDot />}
                 removeArrowOnDeviceType={['mobile']}
                 keyBoardControl
@@ -172,6 +171,7 @@ export function StatsCarousel({
                             item={item}
                             colorVar={COLORS[i % COLORS.length]}
                         />
+
                     </div>
                 ))}
             </Carousel>

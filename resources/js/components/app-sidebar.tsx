@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, FileText, BriefcaseBusiness } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, Folder, FileText, BriefcaseBusiness, Group, UserRoundCog } from 'lucide-react';
 import AppLogo from './app-logo';
 import document from '@/routes/document';
 import AppearanceTabs from '@/components/appearance-tabs';
@@ -32,6 +32,7 @@ const mainNavItems: NavItem[] = [
     }
 ];
 
+
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
@@ -46,6 +47,22 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+
+    const groupOwnerName =  usePage().props.group_owner_title_name as string;
+
+    const adminNavItems: NavItem[] = [
+        {
+            title: groupOwnerName,
+            href: '#',
+            icon: Group,
+        },
+        {
+            title: 'Akun',
+            href: '#',
+            icon: UserRoundCog,
+        }
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -61,7 +78,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} adminItems={adminNavItems}/>
             </SidebarContent>
 
             <SidebarFooter>

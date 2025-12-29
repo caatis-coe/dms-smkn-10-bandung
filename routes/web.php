@@ -37,11 +37,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('', [BusinessProcessController::class, 'store'])
             ->name('business-process.store');
 
+        Route::post('node', [BusinessProcessController::class, 'storeNode'])
+            ->name('business-process.storeNode');
+        
+            Route::put('node/{node}', [BusinessProcessController::class, 'updateNode'])
+            ->name('business-process.updateNode');
+        
+        Route::delete('node/{node}', [BusinessProcessController::class, 'destroyNode'])
+            ->name('business-process.destroyNode');
+
         Route::put('{businessProcess}', [BusinessProcessController::class, 'update'])
             ->name('business-process.update');
 
         Route::delete('{businessProcess}', [BusinessProcessController::class, 'destroy'])
             ->name('business-process.destroy');
+
+        
     });
 });
 

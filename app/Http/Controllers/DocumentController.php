@@ -87,7 +87,6 @@ class DocumentController extends Controller
 
         return Inertia::render('document/index', [
             'documentsCount' => $documentsCount,
-            'groupOwnerName' => $groupOwnerName,
             'groupOwnerCount' => $groupOwnerCount,
             'groupOwnerDocumentCount' => $groupOwnerDocumentCount,
             'documents' => $documents,

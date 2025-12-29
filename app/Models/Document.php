@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Observers\DocumentObserver;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+
+#[ObservedBy(DocumentObserver::class)]
 class Document extends Model
 {
 

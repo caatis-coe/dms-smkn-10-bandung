@@ -57,7 +57,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                 return (
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger
-                            title="Update Document"
+                            title="Ubah Dokumen"
                             className="cursor-pointer rounded p-1 transition hover:bg-foreground/5"
                         >
                             <Pencil className="h-4 w-4 text-icon-edit" />
@@ -501,7 +501,9 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
 
                 return (
                     <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger className="hover:bg-icon-delete-hover cursor-pointer rounded p-1 transition hover:bg-foreground/5">
+                        <DialogTrigger 
+                            title="Hapus Dokumen"
+                            className="hover:bg-icon-delete-hover cursor-pointer rounded p-1 transition hover:bg-foreground/5">
                             <Trash className="h-4 w-4 text-icon-delete" />
                         </DialogTrigger>
 

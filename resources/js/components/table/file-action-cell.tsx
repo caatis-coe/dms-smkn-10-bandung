@@ -38,7 +38,7 @@ export function FileActionsCell({ row, fileType, user }: FileActionsCellProps) {
             {/* VIEW */}
             <Dialog>
                 <DialogTrigger
-                    title="View Document"
+                    title="Lihat Documen"
                     className="cursor-pointer rounded p-1 transition hover:bg-foreground/5"
                 >
                     <Eye className="h-4 w-4 text-icon-view" />
@@ -60,7 +60,7 @@ export function FileActionsCell({ row, fileType, user }: FileActionsCellProps) {
             {canDownload && <a
                 href={fileUrl}
                 download={downloadName}
-                title="Download PDF"
+                title="Unduh Dokumen"
                 className="cursor-pointer rounded p-1 transition hover:bg-foreground/5"
             >
                 <Download className="h-4 w-4 text-icon-download" />
