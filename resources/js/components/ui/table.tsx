@@ -216,7 +216,7 @@ export function Table<T extends Record<string, any>>({
 
       {/* ================= PAGINATION ================= */}
       {onPageChange && (
-        <div className="flex justify-between items-center p-4 bg-muted/30 gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-center p-4 bg-muted/30 gap-6 lg:gap-4">
           <div className="flex gap-x-12">
             {/* PREV */}
             <button

@@ -4,7 +4,21 @@ import { LucideIcon } from 'lucide-react';
 export interface Auth {
     user: User;
 }
+type Paginated<T> = {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+};
 
+type Query<T> = {
+    sort?: keyof T;
+    direction?: 'asc' | 'desc';
+    filters?: Record<string, string>;
+    page?: number;
+    per_page?: number;
+};
 export interface BreadcrumbItem {
     title: string;
     href: string;
@@ -61,7 +75,7 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; 
+    [key: string]: unknown;
 }
 
 export interface Document {
@@ -70,7 +84,7 @@ export interface Document {
     // ISO / metadata
     standard?: string | null;
     clause?: string | null;
-    document_type: "prosedur" | "instruksi" | "dokumen_lain";
+    document_type: 'prosedur' | 'instruksi' | 'dokumen_lain';
 
     // Core
     name: string;

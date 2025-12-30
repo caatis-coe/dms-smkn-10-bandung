@@ -18,6 +18,8 @@ import AppLogo from './app-logo';
 import document from '@/routes/document';
 import AppearanceTabs from '@/components/appearance-tabs';
 import businessProcess from '@/routes/business-process';
+import user from '@/routes/user';
+import groupOwner from '@/routes/group-owner';
 
 const mainNavItems: NavItem[] = [
     {
@@ -33,18 +35,18 @@ const mainNavItems: NavItem[] = [
 ];
 
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+// const footerNavItems: NavItem[] = [
+//     {
+//         title: 'Repository',
+//         href: 'https://github.com/laravel/react-starter-kit',
+//         icon: Folder,
+//     },
+//     {
+//         title: 'Documentation',
+//         href: 'https://laravel.com/docs/starter-kits#react',
+//         icon: BookOpen,
+//     },
+// ];
 
 export function AppSidebar() {
 
@@ -53,12 +55,12 @@ export function AppSidebar() {
     const adminNavItems: NavItem[] = [
         {
             title: groupOwnerName,
-            href: '#',
+            href: groupOwner.index().url,
             icon: Group,
         },
         {
             title: 'Akun',
-            href: '#',
+            href: user.index().url,
             icon: UserRoundCog,
         }
     ];

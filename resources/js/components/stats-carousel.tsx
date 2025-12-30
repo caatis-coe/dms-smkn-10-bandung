@@ -76,7 +76,7 @@ const COLORS = [
 function StatCard({ item, colorVar }: { item: Stat; colorVar: string }) {
     return (
         <Card
-            className="h-36 border-none shadow-md transition"
+            className="h-36 border-none  transition"
             style={{ backgroundColor: `var(${colorVar})` }}
         >
             <CardContent className="flex h-full flex-col justify-between">

@@ -43,6 +43,22 @@ class BusinessProcessObserver
     }
 
     /**
+     * Handle the BusinessProcess "deleted" event.
+     */
+    public function deleted(BusinessProcess $businessProcess): void
+    {
+        $this->deleteEvent($businessProcess);
+    }
+
+    /**
+     * Handle the BusinessProcess "deleted" event.
+     */
+    public function forceDeleted(BusinessProcess $businessProcess): void
+    {
+        $this->deleteEvent($businessProcess);
+    }
+
+    /**
      * Handle the BusinessProcess "restored" event.
      */
     public function restored(BusinessProcess $businessProcess): void

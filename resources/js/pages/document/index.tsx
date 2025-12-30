@@ -1,7 +1,7 @@
-import CreateDocumentDialog from '@/components/create-document-dialog';
+import CreateDocumentDialog from '@/pages/document/partials/create-document-dialog';
 import { StatsCarousel } from '@/components/stats-carousel';
-import { ActionsCell } from '@/components/table/action-cell';
-import { FileActionsCell } from '@/components/table/file-action-cell';
+import { ActionsCell } from '@/pages/document/partials/action-cell';
+import { FileActionsCell } from '@/pages/document/partials/file-action-cell';
 import { Container } from '@/components/ui/container';
 import type { Column } from '@/components/ui/table';
 import { Table } from '@/components/ui/table';
@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { convertTime } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import documentsRoute from '@/routes/document';
-import { GroupOwner, type BreadcrumbItem, type Document, type SharedData } from '@/types';
+import { GroupOwner, Paginated, Query, type BreadcrumbItem, type Document, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -21,21 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-type Paginated<T> = {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-};
 
-type Query = {
-    sort?: keyof Document;
-    direction?: 'asc' | 'desc';
-    filters?: Record<string, string>;
-    page?: number;
-    per_page?: number;
-};
 
 
 export default function Document({
@@ -46,7 +32,7 @@ export default function Document({
     groupOwnerDocumentCount,
 }: {
     documents: Paginated<Document>;
-    query: Query;
+    query: Query<Document>;
     documentsCount: number;
     groupOwnerCount: number;
     groupOwnerDocumentCount: {
@@ -107,7 +93,7 @@ export default function Document({
                 label: owner.name,
                 value: owner.name,
             })),
-            render: (row) => row?.owner?.name,
+            render: (row) => row?.owner?.name ?? <div className="text-foreground/20">-</div>,
         },
         {
             header: 'File Dokumen',

@@ -10,16 +10,16 @@ import type { Document, GroupOwner, User } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
 import { Pencil, Trash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import InputError from '../input-error';
-import { Button } from '../ui/button';
+import InputError from '../../../components/input-error';
+import { Button } from '../../../components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import FileDropzone from '../ui/file-dropzone';
-import { Spinner } from '../ui/spinner';
+} from '../../../components/ui/dropdown-menu';
+import FileDropzone from '../../../components/ui/file-dropzone';
+import { Spinner } from '../../../components/ui/spinner';
 
 export type ActionsCellProps = {
     row: Document;
@@ -228,24 +228,24 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                         <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2 text-left">
                                                             <span>
                                                                 {documentOwner?.name ??
-                                                                    'Pilih Pemilik Dokumen'}
+                                                                    'Tidak ada pemilik dokumen'}
                                                             </span>
                                                         </DropdownMenuTrigger>
 
                                                         <DropdownMenuContent className="max-h-64 w-full min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto">
-                                                            {owners.map(
+                                                            {[...owners, null].map(
                                                                 (owner) => (
                                                                     <DropdownMenuItem
                                                                         key={
-                                                                            owner.id
+                                                                            owner?.id
                                                                         }
-                                                                        onClick={() =>
+                                                                        onClick={() => {
                                                                             setDocumentOwner(
-                                                                                owner,
+                                                                                owner
                                                                             )
-                                                                        }
+                                                                        }}
                                                                     >
-                                                                        {owner.name}
+                                                                        {owner?.name ?? "Tidak ada pemilik dokumen"}
                                                                     </DropdownMenuItem>
                                                                 ),
                                                             )}

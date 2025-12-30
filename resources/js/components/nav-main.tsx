@@ -20,6 +20,7 @@ export function NavMain({
     const page = usePage()
     const { auth } = usePage<SharedData>().props;
 
+
     return (
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -41,7 +42,7 @@ export function NavMain({
                     </SidebarMenuItem>
                 ))}
             </SidebarMenu>
-            {auth.user.role === 'admin' && (
+            {auth.user?.role === 'admin' && auth.user.role === 'admin' && (
                 <>
                     <SidebarGroupLabel>Admin</SidebarGroupLabel>
                     <SidebarMenu>

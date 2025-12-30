@@ -33,7 +33,7 @@ type Query = {
     search?: string;
 };
 
-export default function index({
+export default function BusinessProcess({
     query,
     nodes,
     topNodes,

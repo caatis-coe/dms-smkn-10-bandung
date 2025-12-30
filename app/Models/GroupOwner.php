@@ -12,8 +12,15 @@ class GroupOwner extends Model
 
     protected $fillable = ['name'];
 
+    protected static function booted()
+    {
+        static::deleting(function (GroupOwner $groupOwner) {
+            $groupOwner->bpNodes->each->delete();
+        });
+    }
+
     public function document(){
-        $this->hasMany(Document::class, 'document_owner', 'name');
+        return $this->hasMany(Document::class, 'document_owner', 'name');
     }
 
     public function bpNodes()
@@ -21,7 +28,7 @@ class GroupOwner extends Model
         return $this->hasMany(
             BusinessProcessNode::class,
             'group_owner',
-            'name'
+            'id'
         );
     }
 }

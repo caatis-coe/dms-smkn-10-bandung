@@ -16,8 +16,8 @@ import {
 import FileDropzone from '@/components/ui/file-dropzone';
 import { Form, usePage } from '@inertiajs/react';
 import { useRef, useState } from 'react';
-import InputError from './input-error';
-import { Spinner } from './ui/spinner';
+import InputError from '../../../components/input-error';
+import { Spinner } from '../../../components/ui/spinner';
 import { GroupOwner } from '@/types';
 
 export default function CreateDocumentDialog() {

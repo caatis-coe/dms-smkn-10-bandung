@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\BusinessProcessController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\GroupOwnerController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -53,6 +55,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('business-process.destroy');
 
         
+    });
+
+    Route::prefix('user')->group(function () {
+        Route::get('', [UserController::class, 'index'])
+            ->name('user.index');
+
+        Route::put('role/{user}', [UserController::class, 'updateRole'])
+            ->name('user.updateRole');
+
+        Route::put('verify/{user}', [UserController::class, 'verify'])
+            ->name('user.verify');
+
+        Route::delete('{user}', [UserController::class, 'destroy'])
+            ->name('user.destroy');
+    });
+
+    Route::prefix('group-owner')->group(function () {
+        Route::get('', [GroupOwnerController::class, 'index'])
+            ->name('group-owner.index');
+
+        Route::post('', [GroupOwnerController::class, 'store'])
+            ->name('group-owner.store');
+
+        Route::put('name', [GroupOwnerController::class, 'changeName'])
+            ->name('group-owner.changeName');
+
+        Route::put('{groupOwner}', [GroupOwnerController::class, 'update'])
+            ->name('group-owner.update');
+
+        Route::delete('{groupOwner}', [GroupOwnerController::class, 'destroy'])
+            ->name('group-owner.destroy');
     });
 });
 
