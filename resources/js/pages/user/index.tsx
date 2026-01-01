@@ -1,17 +1,19 @@
-import { ActionsCell } from '@/pages/document/partials/action-cell';
+import UserController from '@/actions/App/Http/Controllers/UserController';
+import { Button } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import type { Column } from '@/components/ui/table';
 import { Table } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import userRoute from '@/routes/user';
-import type { BreadcrumbItem, Paginated, Query, SharedData, User } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
+import type { BreadcrumbItem, Paginated, Query, User } from '@/types';
+import { Form, Head, router } from '@inertiajs/react';
+import { User as UserIcon, UserStar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Users',
+        title: 'Akun',
         href: dashboard().url,
     },
 ];
@@ -23,17 +25,18 @@ export default function UserIndex({
     users: Paginated<User>;
     query: Query<User>;
 }) {
-
     const columns: Column<User>[] = [
         {
-            header: 'Name',
+            header: 'Nama',
             key: 'name',
             enableFilter: true,
+            width: 160,
         },
         {
             header: 'Email',
             key: 'email',
             enableFilter: true,
+            width: 160,
         },
         {
             header: 'Role',
@@ -44,13 +47,54 @@ export default function UserIndex({
                 { label: 'Admin', value: 'admin' },
                 { label: 'User', value: 'user' },
             ],
-            render: (row) =>
-                row.role === 'admin' ? (
-                    <span className="font-medium text-primary">Admin</span>
-                ) : (
-                    'User'
-                ),
-            width: 120,
+            render: (row) => (
+                <div className="flex items-center justify-between">
+                    {row.role === 'admin' ? 'Admin' : 'User'}
+                    <div>
+                        <Form
+                            {...UserController.updateRole.form({
+                                user: row.id,
+                            })}
+                            method="put"
+                            title={
+                                row.role !== 'admin'
+                                    ? 'Promote to Admin'
+                                    : 'Demote to User'
+                            }
+                        >
+                            <button className="cursor-pointer rounded p-1 transition hover:bg-foreground/5" type="submit" >
+                                {row.role !== 'admin' ? (
+                                    <>
+                                        <input
+                                            type="hidden"
+                                            defaultValue={'admin'}
+                                            name="role"
+                                        />
+
+                                        <UserStar
+                                            type="submit"
+                                            className="h-4 w-4 text-icon-edit"
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <input
+                                            type="hidden"
+                                            defaultValue={'user'}
+                                            name="role"
+                                        />
+                                        <UserIcon
+                                            type="submit"
+                                            className="h-4 w-4 text-icon-delete"
+                                        />
+                                    </>
+                                )}
+                            </button>
+                        </Form>
+                    </div>
+                </div>
+            ),
+            width: 60,
         },
         {
             header: 'Email Verified',
@@ -63,16 +107,7 @@ export default function UserIndex({
                 ),
             width: 140,
         },
-        {
-            header: 'Created At',
-            key: 'created_at',
-            render: (row) =>
-                new Date(row.created_at).toLocaleDateString(),
-            width: 140,
-        },
     ];
-
-    
 
     const [queryState, setQueryState] = useState(query);
 

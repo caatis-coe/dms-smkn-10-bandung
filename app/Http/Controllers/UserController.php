@@ -45,6 +45,7 @@ class UserController extends Controller
                     }
                 }
             })
+            ->where('id', '!=', auth()->id())
             ->paginate($query['per_page'])
             ->withQueryString();
 
@@ -61,6 +62,8 @@ class UserController extends Controller
         ]);
 
         $user->update($validated);
+
+
 
         return back()->with('success', $user->name . "'s role updated.");
     }

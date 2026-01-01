@@ -15,12 +15,12 @@ Route::get('/', function () {
 Route::get('document', [DocumentController::class, 'index'])
     ->name('document.index');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin,user'])->group(function () {
     Route::get('dashboard', function () {
         return redirect()->route('document.index');
     })->name('dashboard');
 
-    Route::prefix('document')->group(function () {
+    Route::prefix('document')->middleware('role:admin')->group(function () {
         Route::post('', [DocumentController::class, 'store'])
             ->name('document.store');
 
@@ -36,57 +36,60 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('', [BusinessProcessController::class, 'index'])
             ->name('business-process.index');
 
-        Route::post('', [BusinessProcessController::class, 'store'])
-            ->name('business-process.store');
+        Route::middleware('role:admin')->group(function () {
+            Route::post('', [BusinessProcessController::class, 'store'])
+                ->name('business-process.store');
 
-        Route::post('node', [BusinessProcessController::class, 'storeNode'])
-            ->name('business-process.storeNode');
-        
+            Route::post('node', [BusinessProcessController::class, 'storeNode'])
+                ->name('business-process.storeNode');
+
             Route::put('node/{node}', [BusinessProcessController::class, 'updateNode'])
-            ->name('business-process.updateNode');
-        
-        Route::delete('node/{node}', [BusinessProcessController::class, 'destroyNode'])
-            ->name('business-process.destroyNode');
+                ->name('business-process.updateNode');
 
-        Route::put('{businessProcess}', [BusinessProcessController::class, 'update'])
-            ->name('business-process.update');
+            Route::delete('node/{node}', [BusinessProcessController::class, 'destroyNode'])
+                ->name('business-process.destroyNode');
 
-        Route::delete('{businessProcess}', [BusinessProcessController::class, 'destroy'])
-            ->name('business-process.destroy');
+            Route::put('{businessProcess}', [BusinessProcessController::class, 'update'])
+                ->name('business-process.update');
 
-        
+            Route::delete('{businessProcess}', [BusinessProcessController::class, 'destroy'])
+                ->name('business-process.destroy');
+        });
     });
 
-    Route::prefix('user')->group(function () {
-        Route::get('', [UserController::class, 'index'])
-            ->name('user.index');
-
-        Route::put('role/{user}', [UserController::class, 'updateRole'])
-            ->name('user.updateRole');
-
-        Route::put('verify/{user}', [UserController::class, 'verify'])
-            ->name('user.verify');
-
-        Route::delete('{user}', [UserController::class, 'destroy'])
-            ->name('user.destroy');
+    Route::middleware('role:admin')->group(function () {
+        Route::prefix('user')->group(function () {
+            Route::get('', [UserController::class, 'index'])
+                ->name('user.index');
+    
+            Route::put('role/{user}', [UserController::class, 'updateRole'])
+                ->name('user.updateRole');
+    
+            Route::put('verify/{user}', [UserController::class, 'verify'])
+                ->name('user.verify');
+    
+            Route::delete('{user}', [UserController::class, 'destroy'])
+                ->name('user.destroy');
+        });
+    
+        Route::prefix('group-owner')->group(function () {
+            Route::get('', [GroupOwnerController::class, 'index'])
+                ->name('group-owner.index');
+    
+            Route::post('', [GroupOwnerController::class, 'store'])
+                ->name('group-owner.store');
+    
+            Route::put('name', [GroupOwnerController::class, 'changeName'])
+                ->name('group-owner.changeName');
+    
+            Route::put('{groupOwner}', [GroupOwnerController::class, 'update'])
+                ->name('group-owner.update');
+    
+            Route::delete('{groupOwner}', [GroupOwnerController::class, 'destroy'])
+                ->name('group-owner.destroy');
+        });
     });
-
-    Route::prefix('group-owner')->group(function () {
-        Route::get('', [GroupOwnerController::class, 'index'])
-            ->name('group-owner.index');
-
-        Route::post('', [GroupOwnerController::class, 'store'])
-            ->name('group-owner.store');
-
-        Route::put('name', [GroupOwnerController::class, 'changeName'])
-            ->name('group-owner.changeName');
-
-        Route::put('{groupOwner}', [GroupOwnerController::class, 'update'])
-            ->name('group-owner.update');
-
-        Route::delete('{groupOwner}', [GroupOwnerController::class, 'destroy'])
-            ->name('group-owner.destroy');
-    });
+    
 });
 
 

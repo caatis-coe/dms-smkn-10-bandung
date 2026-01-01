@@ -9,6 +9,7 @@ import type { BreadcrumbItem, Paginated, Query, SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import CreateGroupOwnerDialog from './partials/create-group-owner-dialog';
+import EditableGroupOwnerName from './partials/editable-group-owner-name';
 
 interface GroupOwner {
     id: number;
@@ -41,7 +42,7 @@ export default function GroupOwnerIndex({
             header: 'Name',
             key: 'name',
             enableFilter: true,
-            
+            filterClassName: "w-1/2"
         },
         {
             header: 'Aksi',
@@ -50,7 +51,7 @@ export default function GroupOwnerIndex({
                 <ActionsCell row={row} groupOwnerName={groupOwnerName} />
             ),
             sortable: false,
-            width: 20
+            width: 40
         },
     ];
 
@@ -73,7 +74,10 @@ export default function GroupOwnerIndex({
             <Head title="Group Owners" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <Container>
-                    <CreateGroupOwnerDialog groupOwnerName={groupOwnerName}/>
+                    <div className='flex justify-between items-center mb-4'>
+                        <CreateGroupOwnerDialog groupOwnerName={groupOwnerName}/>
+                        <EditableGroupOwnerName groupOwnerName={groupOwnerName} />
+                    </div>
                     <div className="h-2" />
                     <Table
                         columns={columns}

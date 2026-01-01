@@ -18,7 +18,7 @@ export default function CreateGroupOwnerDialog({groupOwnerName} : {groupOwnerNam
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="mb-4">Unggah Dokumen</Button>
+                <Button className="">Buat {groupOwnerName}</Button>
             </DialogTrigger>
 
             <DialogContent className="max-w-sm rounded-xl">

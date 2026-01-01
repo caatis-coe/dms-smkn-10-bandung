@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Document',
+        title: 'Dokumen',
         href: dashboard().url,
     },
 ];

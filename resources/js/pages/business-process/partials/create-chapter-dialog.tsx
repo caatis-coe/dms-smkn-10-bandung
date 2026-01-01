@@ -36,12 +36,12 @@ export default function CreateChapterDialog({
                 <DialogTrigger asChild>
                     <Button  className="mb-4 bg-chart-3 hover:bg-chart-3/90 ">
                         <DiamondPlus className="h-4 w-4 text-white" />
-                        <span className='text-background'>Buat Bab</span>
+                        <span className='text-white'>Tambah Bab</span>
                     </Button>
                 </DialogTrigger>
             ) : (
                 <DialogTrigger
-                    title="Tambah Bab"
+                    title="Tambah Sub Bab"
                     className={
                         'cursor-pointer rounded p-1 transition hover:bg-foreground/5'
                     }
@@ -51,7 +51,7 @@ export default function CreateChapterDialog({
             )}
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create Business Process</DialogTitle>
+                    <DialogTitle>Tambah Sub Bab</DialogTitle>
                 </DialogHeader>
 
                 <Form

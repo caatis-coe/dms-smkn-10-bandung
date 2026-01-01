@@ -68,7 +68,7 @@ export default function NodeActions({
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Create Business Process</DialogTitle>
+                        <DialogTitle>Tambah Proses Bisnis</DialogTitle>
                     </DialogHeader>
 
                     <Form
@@ -164,7 +164,7 @@ export default function NodeActions({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {canAddChapter ? 'Edit Bab' : 'Edit Sub Bab'}
+                            {canAddChapter ? 'Ubah Bab' : 'Ubah Sub Bab'}
                         </DialogTitle>
                     </DialogHeader>
 

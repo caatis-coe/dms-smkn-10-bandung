@@ -228,7 +228,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                         <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2 text-left">
                                                             <span>
                                                                 {documentOwner?.name ??
-                                                                    'Tidak ada pemilik dokumen'}
+                                                                    '<Tidak ada pemilik dokumen>'}
                                                             </span>
                                                         </DropdownMenuTrigger>
 
@@ -245,7 +245,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                                             )
                                                                         }}
                                                                     >
-                                                                        {owner?.name ?? "Tidak ada pemilik dokumen"}
+                                                                        {owner?.name ?? "<Tidak ada pemilik dokumen>"}
                                                                     </DropdownMenuItem>
                                                                 ),
                                                             )}

@@ -10,10 +10,12 @@ export interface Column<T> {
   key: keyof T
   enableFilter?: boolean
   sortable?: boolean
-  width?: number
   render?: (row: T) => React.ReactNode
   filterType?: "text" | "dropdown"
-  filterOptions?: { label: string; value: string }[]
+  filterOptions?: { label: string; value: string }[],
+  headerClassName?: string,
+  width?: number,
+  filterClassName?: string
 }
 
 interface TableProps<T> {
@@ -45,7 +47,8 @@ export function Table<T extends Record<string, any>>({
   totalPages = 1,
   onPageChange,
   perPage = 5,
-  onPageSizeChange
+  onPageSizeChange,
+
 }: TableProps<T>) {
 
   /* =========================================================
@@ -90,7 +93,7 @@ export function Table<T extends Record<string, any>>({
                 return (
                   <th
                     key={i}
-                    className="px-4 py-6 font-medium text-left relative select-none"
+                    className={cn("px-4 py-6 font-medium text-left relative select-none w-[150px]", col.headerClassName)}
                     style={{ width: col.width ?? 150 }}
                   >
                     <div className="flex flex-col items-start gap-4">
@@ -124,7 +127,7 @@ export function Table<T extends Record<string, any>>({
                               disabled={isLoading}
                               className={cn(
                                 "h-9 w-full rounded border px-3 text-xs bg-background text-left flex items-center justify-between",
-                                isLoading && "opacity-50 cursor-not-allowed"
+                                isLoading && "opacity-50 cursor-not-allowed",col.filterClassName
                               )}
                             >
                               <span>
@@ -137,7 +140,7 @@ export function Table<T extends Record<string, any>>({
                               <ChevronDown className="h-3 w-3 opacity-60" />
                             </DropdownMenuTrigger>
 
-                            <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
+                            <DropdownMenuContent className={cn("w-full min-w-[var(--radix-dropdown-menu-trigger-width)]", col.filterClassName)}>
                               <DropdownMenuItem
                                 onClick={() => onFilterChange(col.key, "")}
                               >
@@ -161,7 +164,7 @@ export function Table<T extends Record<string, any>>({
                           <input
                             disabled={isLoading}
                             type="text"
-                            className="h-9 w-full rounded border px-4 text-xs bg-background disabled:opacity-50"
+                            className={cn("h-9 w-full rounded border px-4 text-xs bg-background disabled:opacity-50", col.filterClassName)}
                             placeholder="Filter…"
                             value={filters?.[col.key as string] ?? ""}
                             onChange={(e) =>

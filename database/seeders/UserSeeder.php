@@ -25,6 +25,8 @@ class UserSeeder extends Seeder
             'remember_token' => Str::random(10),
         ]);
 
+        if (app()->environment("production")) return;
+        
         for ($i = 1; $i <= 4; $i++) {
             User::create([
                 'name' => "User {$i}",

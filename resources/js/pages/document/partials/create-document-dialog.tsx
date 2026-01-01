@@ -14,11 +14,11 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import FileDropzone from '@/components/ui/file-dropzone';
+import { GroupOwner } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import InputError from '../../../components/input-error';
 import { Spinner } from '../../../components/ui/spinner';
-import { GroupOwner } from '@/types';
 
 export default function CreateDocumentDialog() {
     const [open, setOpen] = useState(false);
@@ -33,6 +33,14 @@ export default function CreateDocumentDialog() {
     const [mainFile, setMainFile] = useState<File | null>(null);
     const [supportingFile, setSupportingFile] = useState<File | null>(null);
 
+    useEffect(() => {
+      setDocumentOwner(null);
+      setDocumentType('prosedur');
+      setMainFile(null);
+      setSupportingFile(null);
+    }, [open])
+    
+
     const mainFileRef = useRef<HTMLInputElement>(null);
     const supportingFileRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +52,7 @@ export default function CreateDocumentDialog() {
                 <Button className="mb-4">Unggah Dokumen</Button>
             </DialogTrigger>
 
-            <DialogContent className="flex max-w-[95vw] flex-col sm:max-w-[80vw] max-h-[95vh] overflow-y-auto">
+            <DialogContent className="flex max-h-[95vh] max-w-[95vw] flex-col overflow-y-auto sm:max-w-[80vw]">
                 <DialogHeader>
                     <DialogTitle>Unggah Dokumen Baru</DialogTitle>
                 </DialogHeader>
@@ -73,7 +81,6 @@ export default function CreateDocumentDialog() {
                                         <input
                                             name="code"
                                             className="rounded border p-2"
-                                            required
                                         />
                                         <InputError message={errors.code} />
                                     </div>
@@ -85,7 +92,6 @@ export default function CreateDocumentDialog() {
                                         <input
                                             name="name"
                                             className="rounded border p-2"
-                                            required
                                         />
                                         <InputError message={errors.name} />
                                     </div>
@@ -177,22 +183,25 @@ export default function CreateDocumentDialog() {
                                         <DropdownMenu>
                                             <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2">
                                                 {documentOwner?.name ??
-                                                    'Pilih Pemilik Dokumen'}
+                                                    '<Tidak ada pemilik dokumen>'}
                                             </DropdownMenuTrigger>
 
                                             <DropdownMenuContent className="max-h-64 w-full min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto">
-                                                {owners.map((owner) => (
-                                                    <DropdownMenuItem
-                                                        key={owner.id}
-                                                        onClick={() =>
-                                                            setDocumentOwner(
-                                                                owner,
-                                                            )
-                                                        }
-                                                    >
-                                                        {owner.name}
-                                                    </DropdownMenuItem>
-                                                ))}
+                                                {[...owners, null].map(
+                                                    (owner) => (
+                                                        <DropdownMenuItem
+                                                            key={owner?.id}
+                                                            onClick={() => {
+                                                                setDocumentOwner(
+                                                                    owner,
+                                                                );
+                                                            }}
+                                                        >
+                                                            {owner?.name ??
+                                                                '<Tidak ada pemilik dokumen>'}
+                                                        </DropdownMenuItem>
+                                                    ),
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                         <InputError
@@ -201,7 +210,7 @@ export default function CreateDocumentDialog() {
                                         <input
                                             type="hidden"
                                             name="document_owner"
-                                            value={documentOwner?.id  ?? ''}
+                                            value={documentOwner?.id ?? ''}
                                         />
                                     </div>
 

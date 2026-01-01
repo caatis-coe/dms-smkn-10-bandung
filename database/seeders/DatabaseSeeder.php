@@ -11,13 +11,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([UserSeeder::class, ConfigSeeder::class]);
+        
+        if (app()->environment("production")) return;
+
         $this->call([
             GroupOwnerSeeder::class,
             BusinessProcessNodeSeeder::class,
             BusinessProcessSeeder::class,
-            ConfigSeeder::class,
-            UserSeeder::class,
-            DocumentSeeder::class, 
+            DocumentSeeder::class,
+
         ]);
+
+
     }
 }

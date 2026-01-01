@@ -26,12 +26,13 @@ export function NavMain({
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
+                    <SidebarMenuItem   key={item.title}>
                         <SidebarMenuButton
                             asChild
                             isActive={page.url.startsWith(
                                 resolveUrl(item.href),
                             )}
+                            
                             tooltip={{ children: item.title }}
                         >
                             <Link href={item.href} prefetch>
