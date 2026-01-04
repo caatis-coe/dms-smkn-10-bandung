@@ -18,8 +18,8 @@ class RoleMiddleware
         $user = $request->user();
 
         // Not authenticated
-        if (!$user) {
-            return redirect()->route('dashboard');
+        if (!$user || !$user->email_verified_by_admin_at) {
+            return redirect()->route('document.index');
         }
 
         // Role mismatch

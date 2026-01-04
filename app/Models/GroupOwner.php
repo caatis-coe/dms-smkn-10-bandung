@@ -6,7 +6,7 @@ use App\Observers\GroupOwnerObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
-#[ObservedBy(GroupOwnerObserver::class)]
+// #[ObservedBy(GroupOwnerObserver::class)]
 class GroupOwner extends Model
 {
 
@@ -19,7 +19,7 @@ class GroupOwner extends Model
         });
     }
 
-    public function document(){
+    public function documents(){
         return $this->hasMany(Document::class, 'document_owner', 'name');
     }
 

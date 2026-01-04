@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { LucideIcon, Moon, Sun } from 'lucide-react';
 import { HTMLAttributes } from 'react';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function AppearanceToggleTab({
     className = '',
@@ -10,6 +11,7 @@ export default function AppearanceToggleTab({
 }: HTMLAttributes<HTMLDivElement>) {
     const { appearance, updateAppearance } = useAppearance();
     const { state } = useSidebar();
+    const isMobile = useIsMobile();
     const collapsed = state === 'collapsed';
 
     const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
@@ -42,7 +44,7 @@ export default function AppearanceToggleTab({
                     )}
                 >
                     <Icon className="h-4 w-4" />
-                    {!collapsed && (
+                    {(!collapsed || isMobile) && (
                         <span className="ml-1.5 text-sm">{label}</span>
                     )}
                 </button>

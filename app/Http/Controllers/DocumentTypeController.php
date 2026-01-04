@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Config;
-use App\Models\GroupOwner;
+use App\Models\DocumentType;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class GroupOwnerController extends Controller
+class DocumentTypeController extends Controller
 {
     public function index(Request $request)
     {
@@ -21,7 +20,8 @@ class GroupOwnerController extends Controller
 
         $directFilters = ['name'];
 
-        $groupOwners = GroupOwner::query()
+        $documentTypes = DocumentType::query()
+            ->withCount('documents')
             ->when(
                 $query['sort'],
                 fn ($q) => $q->orderBy($query['sort'], $query['direction'])
@@ -40,8 +40,8 @@ class GroupOwnerController extends Controller
             ->paginate($query['per_page'])
             ->withQueryString();
 
-        return Inertia::render('group-owner/index', [
-            'groupOwners' => $groupOwners,
+        return Inertia::render('document-type/index', [
+            'documentTypes' => $documentTypes,
             'query' => $query,
         ]);
     }
@@ -49,42 +49,29 @@ class GroupOwnerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:group_owners,name',
+            'name' => 'required|string|max:255|unique:document_types,name',
         ]);
 
-        GroupOwner::create($validated);
+        DocumentType::create($validated);
 
-        return redirect()->route('group-owner.index')->with('success', 'Group owner created.');
+        return back()->with('success', 'Document type created.');
     }
 
-    public function changeName(Request $request)
+    public function update(Request $request, DocumentType $documentType)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:24',
+            'name' => 'required|string|max:255|unique:document_types,name,' . $documentType->id,
         ]);
 
-        Config::where('variable', 'group_owner')->first()->update([
-            'value' => $validated['name'],
-        ]);
+        $documentType->update($validated);
 
-        return redirect()->route('group-owner.index')->with('success', 'Group owner name updated to ' . $validated['name'] . '.');
+        return back()->with('success', 'Document type updated.');
     }
 
-    public function update(Request $request, GroupOwner $groupOwner)
+    public function destroy(DocumentType $documentType)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:group_owners,name,' . $groupOwner->id,
-        ]);
+        $documentType->delete();
 
-        $groupOwner->update($validated);
-
-        return redirect()->route('group-owner.index')->with('success', 'Group owner updated.');
-    }
-
-    public function destroy(GroupOwner $groupOwner)
-    {
-        $groupOwner->delete();
-
-        return redirect()->route('group-owner.index')->with('success', 'Group owner deleted.');
+        return back()->with('success', 'Document type deleted.');
     }
 }

@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 class Document extends Model
 {
 
-
     protected $fillable = [
         'code',
         'standard',
@@ -19,6 +18,7 @@ class Document extends Model
         'document_type',
         'name',
         'document_owner',
+        'status',
         'file_path',
         'supporting_file_path',
         'application_link',
@@ -33,6 +33,7 @@ class Document extends Model
         'publishedBy:id,name,email,role',
         'lastUpdatedBy:id,name,email,role',
         'owner:id,name',
+        'documentType:id,name'
     ];
 
     protected $casts = [
@@ -58,8 +59,14 @@ class Document extends Model
 
     public function owner()
     {
-        return $this->belongsTo(GroupOwner::class, 'document_owner', 'id');
+        return $this->belongsTo(GroupOwner::class, 'document_owner');
     }
+
+    public function documentType()
+    {
+        return $this->belongsTo(DocumentType::class, 'document_type');
+    }
+
 
     /* ================= Accessors ================= */
 

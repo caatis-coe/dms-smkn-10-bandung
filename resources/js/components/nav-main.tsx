@@ -12,14 +12,22 @@ import { Link, usePage } from '@inertiajs/react';
 
 export function NavMain({
     items = [],
+    authItems = [],
     adminItems = [],
 }: {
     items: NavItem[];
+    authItems: NavItem[];
     adminItems: NavItem[];
 }) {
     const page = usePage()
     const { auth } = usePage<SharedData>().props;
 
+    const currentPath = page.url.split('?')[0];
+
+    const isActive = (item : NavItem) => {
+        return currentPath === resolveUrl(item.href) ||
+        currentPath.startsWith(resolveUrl(item.href) + '/');
+    }
 
     return (
         <SidebarGroup className="px-2 py-0">
@@ -29,9 +37,22 @@ export function NavMain({
                     <SidebarMenuItem   key={item.title}>
                         <SidebarMenuButton
                             asChild
-                            isActive={page.url.startsWith(
-                                resolveUrl(item.href),
-                            )}
+                            isActive={isActive(item)}
+                            
+                            tooltip={{ children: item.title }}
+                        >
+                            <Link href={item.href} prefetch>
+                                {item.icon && <item.icon />}
+                                <span>{item.title}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+                {authItems.map((item) => (
+                    <SidebarMenuItem title='Login Required' className={`${!auth.user.email_verified_by_admin_at ? "pointer-events-none opacity-40" : ""}`} key={item.title}>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={isActive(item)}
                             
                             tooltip={{ children: item.title }}
                         >
@@ -43,7 +64,7 @@ export function NavMain({
                     </SidebarMenuItem>
                 ))}
             </SidebarMenu>
-            {auth.user?.role === 'admin' && auth.user.role === 'admin' && (
+            {auth.user?.role === 'admin' && auth.user.email_verified_by_admin_at && (
                 <>
                     <SidebarGroupLabel>Admin</SidebarGroupLabel>
                     <SidebarMenu>
@@ -51,9 +72,7 @@ export function NavMain({
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton
                                     asChild
-                                    isActive={page.url.startsWith(
-                                        resolveUrl(item.href),
-                                    )}
+                                    isActive={isActive(item)}
                                     tooltip={{ children: item.title }}
                                 >
                                     <Link href={item.href} prefetch>

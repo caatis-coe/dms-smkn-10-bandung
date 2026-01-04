@@ -49,6 +49,12 @@ type GroupOwner = {
     name: string;
 };
 
+type DocumentType = {
+    id: number;
+    name: string;
+    documents_count? : number;
+}
+
 type BusinessProcess = {
     id: number;
     name: string;
@@ -72,6 +78,7 @@ export interface User {
     role: string;
     avatar?: string;
     email_verified_at: string | null;
+    email_verified_by_admin_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
@@ -84,7 +91,8 @@ export interface Document {
     // ISO / metadata
     standard?: string | null;
     clause?: string | null;
-    document_type: 'prosedur' | 'instruksi' | 'dokumen_lain';
+    document_type: DocumentType;
+    status: 'aktif' | 'dicabut' | 'digantikan_oleh_dokumen_lain'
 
     // Core
     name: string;

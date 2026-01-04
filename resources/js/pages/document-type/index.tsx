@@ -1,37 +1,33 @@
-import { ActionsCell } from '@/pages/group-owner/partials/action-cell';
+import { ActionsCell } from './partials/action-cell';
 import { Container } from '@/components/ui/container';
 import type { Column } from '@/components/ui/table';
 import { Table } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import groupOwnerRoute from '@/routes/group-owner';
-import type { BreadcrumbItem, GroupOwner, Paginated, Query} from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
+import documentTypeRoute from '@/routes/document-type';
+import type { BreadcrumbItem, DocumentType, Paginated, Query } from '@/types';
+import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import CreateGroupOwnerDialog from './partials/create-group-owner-dialog';
-import EditableGroupOwnerName from './partials/editable-group-owner-name';
+import CreateDocumentTypeDialog from './partials/create-document-type-dialog';
 
-
-
-export default function GroupOwnerIndex({
-    groupOwners,
+export default function DocumentTypeIndex({
+    documentTypes,
     query = {},
 }: {
-    groupOwners: Paginated<GroupOwner>;
-    query: Query<GroupOwner>;
+    documentTypes: Paginated<DocumentType>;
+    query: Query<DocumentType>;
 }) {
 
-    const groupOwnerName = usePage().props.group_owner_title_name as string;
-
+    
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: groupOwnerName,
+            title: "Jenis Dokumen",
             href: dashboard().url,
         },
     ];
 
-    const columns: Column<GroupOwner>[] = [
+    const columns: Column<DocumentType>[] = [
         {
             header: 'Nama',
             key: 'name',
@@ -42,7 +38,7 @@ export default function GroupOwnerIndex({
             header: 'Aksi',
             key: 'id',
             render : (row) => (
-                <ActionsCell row={row} groupOwnerName={groupOwnerName} />
+                <ActionsCell row={row}/>
             ),
             sortable: false,
             width: 40
@@ -53,7 +49,7 @@ export default function GroupOwnerIndex({
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            router.get(groupOwnerRoute.index().url, queryState, {
+            router.get(documentTypeRoute.index().url, queryState, {
                 replace: true,
                 preserveScroll: true,
                 preserveState: true,
@@ -68,14 +64,13 @@ export default function GroupOwnerIndex({
             <Head title="Group Owners" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <Container>
-                    <div className='flex justify-between items-center mb-4'>
-                        <CreateGroupOwnerDialog groupOwnerName={groupOwnerName}/>
-                        <EditableGroupOwnerName groupOwnerName={groupOwnerName} />
+                    <div className='flex items-center mb-4'>
+                        <CreateDocumentTypeDialog/>
                     </div>
                     <div className="h-2" />
                     <Table
                         columns={columns}
-                        data={groupOwners.data}
+                        data={documentTypes.data}
                         /* SORTING */
                         sortKey={queryState.sort}
                         sortDirection={queryState.direction}
@@ -101,7 +96,7 @@ export default function GroupOwnerIndex({
                         }}
                         /* PAGINATION */
                         page={queryState.page}
-                        totalPages={groupOwners.last_page}
+                        totalPages={documentTypes.last_page}
                         perPage={queryState.per_page}
                         onPageChange={(p) => {
                             setQueryState((prev) => ({

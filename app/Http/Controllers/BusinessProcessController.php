@@ -13,14 +13,19 @@ class BusinessProcessController extends Controller
 {
     public function index(Request $request)
     {
+        $requestedGroupOwnerId = $request->input('group_owner');
+
+        $defaultGroupOwnerId = GroupOwner::query()->first('id')?->id ?? null;
+
+        $groupOwnerId = GroupOwner::whereKey($requestedGroupOwnerId)->exists()
+            ? (int) $requestedGroupOwnerId
+            : ($defaultGroupOwnerId ?? -99);
 
         $query = [
-            "group_owner" => $request->input('group_owner') ?? GroupOwner::query()
-                ->select('id', 'name')
-                ->orderBy('name')
-                ->first()->id ?? -99,
-            "search" => $request->input('search') ?? ""
+            'group_owner' => $groupOwnerId,
+            'search' => $request->input('search', ''),
         ];
+    
 
         $search = $query['search'];
 
@@ -93,6 +98,7 @@ class BusinessProcessController extends Controller
             'query' => $query,
             'nodes' => $nodes,
             'topNodes' => $topNodes,
+            'groupOwners' => GroupOwner::get(['id', 'name'])
         ]);
     }
 
@@ -145,7 +151,8 @@ class BusinessProcessController extends Controller
         return back();
     }
 
-    public function storeNode(Request $request){
+    public function storeNode(Request $request)
+    {
         $data = $request->validate([
             'name' => 'required|string',
             'code' => 'required|string',

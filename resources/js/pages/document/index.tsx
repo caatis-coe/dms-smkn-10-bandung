@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { convertTime } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import documentsRoute from '@/routes/document';
-import { GroupOwner, Paginated, Query, type BreadcrumbItem, type Document, type SharedData } from '@/types';
+import { DocumentType, GroupOwner, Paginated, Query, type BreadcrumbItem, type Document, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -20,8 +20,6 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: dashboard().url,
     },
 ];
-
-
 
 
 export default function Document({
@@ -52,32 +50,44 @@ export default function Document({
             key: 'standard',
             enableFilter: true,
             render: (row) => row.standard ?? '-',
+            width:120,
         },
         {
             header: 'Klausul',
             key: 'clause',
             enableFilter: true,
             render: (row) => row.clause ?? '-',
+            width:120,
+        },
+        {
+            header: 'Status',
+            key: 'status',
+            enableFilter: true,
+            filterType: 'dropdown',
+            filterOptions: [
+                {
+                    label: 'Dicabut',
+                    value: 'dicabut',
+                },
+                {
+                    label: 'Digantikan Oleh Dokumen Lain',
+                    value: 'digantikan_oleh_dokumen_lain',
+                },
+            ],
+            render: (row) => row.status === 'dicabut' ? 'Dicabut' : 'Digantikan Oleh Dokumen Lain',
+            width:120,
         },
         {
             header: 'Jenis Dokumen',
             key: 'document_type',
             enableFilter: true,
-            render: (row) => {
-                const type = row.document_type ?? null;
-                if (!type) return '-';
-
-                return type === 'dokumen_lain'
-                    ? 'Dokumen Lain'
-                    : type.replace(/^\w/, (c) => c.toUpperCase());
-            },
             filterType: 'dropdown',
-            filterOptions: [
-                { label: 'Prosedur', value: 'prosedur' },
-                { label: 'Instruksi', value: 'instruksi' },
-                { label: 'Dokumen Lain', value: 'dokumen_lain' },
-            ],
+            filterOptions: (usePage().props.document_types as DocumentType[]).map((type) => ({
+                label: type.name,
+                value: type.name,
+            })),
             width: 120,
+            render: (row) => row.document_type.name
         },
         {
             header: 'Nama Dokumen',
@@ -201,7 +211,7 @@ export default function Document({
                     <StatsCarousel documentsCount={documentsCount} groupOwnerName={groupOwnerName} groupOwnerCount={groupOwnerCount} groupOwnerDocumentCount={groupOwnerDocumentCount} />
                 </Container>
                 <Container>
-                    {user?.role === 'admin' && <CreateDocumentDialog />}
+                    {user?.role === 'admin' && user.email_verified_by_admin_at && <CreateDocumentDialog />}
                     <div className="h-2" />
                     <Table
                         columns={columns}

@@ -2,25 +2,27 @@
 
 namespace Database\Seeders;
 
-use App\Models\GroupOwner;
+use App\Models\DocumentType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class GroupOwnerSeeder extends Seeder
+class DocumentTypeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
+
+     
     public function run(): void
     {
         $owners = [
-            'Kesenian',
-            'Multimedia',
-            'Desain & Film',
+            'Prosedur',
+            'Instruksi',
+            'Dokumen Lain'
         ];
 
         foreach ($owners as $name) {
-            GroupOwner::create([
+            DocumentType::create([
                 'name' => $name,
             ]);
         }

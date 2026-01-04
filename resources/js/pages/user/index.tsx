@@ -8,7 +8,7 @@ import { dashboard } from '@/routes';
 import userRoute from '@/routes/user';
 import type { BreadcrumbItem, Paginated, Query, User } from '@/types';
 import { Form, Head, router } from '@inertiajs/react';
-import { User as UserIcon, UserStar } from 'lucide-react';
+import { BadgeCheck, BadgeX, User as UserIcon, UserStar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -98,13 +98,59 @@ export default function UserIndex({
         },
         {
             header: 'Email Verified',
-            key: 'email_verified_at',
-            render: (row) =>
-                row.email_verified_at ? (
-                    <span className="text-success">Verified</span>
-                ) : (
-                    <span className="text-destructive">Unverified</span>
-                ),
+            key: 'email_verified_by_admin_at',
+            render: (row) => (
+                <div className="flex items-center justify-between">
+                    {
+                        row.email_verified_by_admin_at ? (
+                            <span className="text-icon-download">Verified</span>
+                        ) : (
+                            <span className="text-icon-delete">Unverified</span>
+                        )
+                    }
+                    <div>
+                        <Form
+                            {...UserController.verify.form({
+                                user: row.id,
+                            })}
+                            method="put"
+                            title={
+                                row.email_verified_by_admin_at
+                                    ? 'Verify'
+                                    : 'Deverify'
+                            }
+                        >
+                            <button className="cursor-pointer rounded p-1 transition hover:bg-foreground/5" type="submit" >
+                                {!row.email_verified_by_admin_at ? (
+                                    <>
+                                        <input
+                                            type="hidden"
+                                            defaultValue={1}
+                                            name="verify"
+                                        />
+                                        <BadgeCheck
+                                            type="submit"
+                                            className="h-4 w-4 text-icon-download"
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <input
+                                            type="hidden"
+                                            defaultValue={0}
+                                            name="verify"
+                                        />
+                                        <BadgeX
+                                            type="submit"
+                                            className="h-4 w-4 text-icon-delete"
+                                        />
+                                    </>
+                                )}
+                            </button>
+                        </Form>
+                    </div>
+                </div>
+            ),  
             width: 140,
         },
     ];

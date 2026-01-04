@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('code')->unique();
             $table->string('standard')->nullable();
             $table->string('clause')->nullable();
-            $table->enum('document_type', ['prosedur', 'instruksi', 'dokumen_lain']);
+            $table->foreignId('document_type')->constrained('document_types');
             $table->string('name');
             $table->foreignId('document_owner')->nullable()
                 ->constrained('group_owners')
@@ -25,7 +25,7 @@ return new class extends Migration {
             $table->string('application_link')->nullable();
             $table->string('revision')->nullable();
             $table->date('effective_date')->nullable();
-
+            $table->enum('status', ['aktif', 'dicabut', 'digantikan_oleh_dokumen_lain'])->nullable();
             $table->foreignId('published_by')
                 ->nullable()
                 ->constrained('users')

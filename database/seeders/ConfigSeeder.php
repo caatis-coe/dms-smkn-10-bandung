@@ -14,7 +14,7 @@ class ConfigSeeder extends Seeder
     public function run(): void
     {
         $configs = [
-            'group_owner' => 'Kejuruan',
+            'group_owner' => 'Konsentrasi Keahlian',
         ];
 
         foreach ($configs as $variable => $value) {

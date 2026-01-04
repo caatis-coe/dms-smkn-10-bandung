@@ -130,7 +130,7 @@ export function Table<T extends Record<string, any>>({
                                 isLoading && "opacity-50 cursor-not-allowed",col.filterClassName
                               )}
                             >
-                              <span>
+                              <span className="truncate">
                                 {filters?.[col.key as string]
                                   ? col.filterOptions.find(
                                       o => o.value === filters[col.key as string]
@@ -195,7 +195,7 @@ export function Table<T extends Record<string, any>>({
               ))
             ) : data.length !== 0 ? (
               data.map((row, rIndex) => (
-                <tr key={rIndex} className={`border-t hover:bg-muted/30 transition ${rIndex % 2 === 0 && "bg-foreground/2"}`}>
+                <tr key={rIndex} className={`border-t hover:bg-muted/30 transition ${rIndex % 2 !== 0 && "bg-foreground/2"}`}>
                   {columns.map((col, i) => (
                     <td key={i} className="px-4 py-3">
                       {col.render ? col.render(row) : row[col.key]}

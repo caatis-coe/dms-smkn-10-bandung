@@ -69,9 +69,13 @@ class UserController extends Controller
     }
 
     public function verify(Request $request, User $user)
-    {
+    {   
+        $validated = $request->validate([
+            'verify' => 'required|boolean'
+        ]);
+
         $user->update([
-            'email_verified_at' => now(),
+            'email_verified_by_admin_at' => $validated['verify'] ? now() : null,
         ]);
 
         return back()->with('success', $user->name . "is verified.");

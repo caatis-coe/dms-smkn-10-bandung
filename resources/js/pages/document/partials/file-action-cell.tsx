@@ -15,7 +15,7 @@ export type FileActionsCellProps = {
 };
 
 export function FileActionsCell({ row, fileType, user }: FileActionsCellProps) {
-    const canDownload = user && (user.role === 'user' || user.role === 'admin');
+    const canDownload = user && (user.role === 'user' || user.role === 'admin') && user.email_verified_by_admin_at;
     const fileUrl =
         fileType === 'supporting' ? row.supporting_file_url : row.file_url;
 

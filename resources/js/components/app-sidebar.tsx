@@ -13,20 +13,24 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, FileText, BriefcaseBusiness, Group, UserRoundCog } from 'lucide-react';
+import { FileText, BriefcaseBusiness, Group, UserRoundCog, FileType } from 'lucide-react';
 import AppLogo from './app-logo';
 import document from '@/routes/document';
 import AppearanceTabs from '@/components/appearance-tabs';
 import businessProcess from '@/routes/business-process';
 import user from '@/routes/user';
 import groupOwner from '@/routes/group-owner';
+import documentType from '@/routes/document-type';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dokumen',
         href: document.index().url,
-        icon: FileText,
+        icon: FileText
     },
+];
+
+const mainNavAuthItems: NavItem[] = [
     {
         title: 'Proses Bisnis',
         href: businessProcess.index().url,
@@ -62,6 +66,11 @@ export function AppSidebar() {
             title: 'Akun',
             href: user.index().url,
             icon: UserRoundCog,
+        },
+        {
+            title: 'Jenis Dokumen',
+            href: documentType.index().url,
+            icon: FileType,
         }
     ];
 
@@ -80,7 +89,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} adminItems={adminNavItems}/>
+                <NavMain items={mainNavItems} authItems={mainNavAuthItems} adminItems={adminNavItems}/>
             </SidebarContent>
 
             <SidebarFooter>

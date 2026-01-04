@@ -5,22 +5,21 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import type { GroupOwner } from '@/types';
+import type { DocumentType } from '@/types';
 import { Form } from '@inertiajs/react';
 import { Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../../../components/ui/button';
 
-import GroupOwnerController from '@/actions/App/Http/Controllers/GroupOwnerController';
-import { Spinner } from '../../../components/ui/spinner';
+import DocumentTypeController from '@/actions/App/Http/Controllers/DocumentTypeController';
 import InputError from '@/components/input-error';
+import { Spinner } from '../../../components/ui/spinner';
 
 export type ActionsCellProps = {
-    row: GroupOwner;
-    groupOwnerName: string;
+    row: DocumentType;
 };
 
-export function ActionsCell({ row, groupOwnerName }: ActionsCellProps) {
+export function ActionsCell({ row }: ActionsCellProps) {
     return (
         <div className="flex items-center gap-2">
             {/* ==================== UPDATE BUTTON ==================== */}
@@ -30,7 +29,7 @@ export function ActionsCell({ row, groupOwnerName }: ActionsCellProps) {
                 return (
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger
-                            title={`Ubah ${groupOwnerName}`}
+                            title={`Ubah Jenis Dokumen`}
                             className="cursor-pointer rounded p-1 transition hover:bg-foreground/5"
                         >
                             <Pencil className="h-4 w-4 text-icon-edit" />
@@ -38,17 +37,17 @@ export function ActionsCell({ row, groupOwnerName }: ActionsCellProps) {
 
                         <DialogContent className="max-w-sm rounded-xl">
                             <DialogHeader>
-                                <DialogTitle>Ubah {groupOwnerName}</DialogTitle>
+                                <DialogTitle>Ubah Jenis Dokumen</DialogTitle>
                             </DialogHeader>
                             {/* =================================================== */}
                             {/*                  UPDATE FORM LAYOUT                 */}
                             {/* =================================================== */}
                             <Form
-                                {...GroupOwnerController.update.form({
-                                    groupOwner: row.id,
+                                {...DocumentTypeController.update.form({
+                                    documentType: row.id,
                                 })}
-                                onSuccess={() => {window.location.reload();setOpen(false);}}
-                                options={{ replace: true , preserveState: false}}
+                                onSuccess={() => setOpen(false)}
+                                options={{ preserveScroll: true }}
                                 className="space-y-6"
                             >
                                 {({ processing, errors }) => (
@@ -58,22 +57,22 @@ export function ActionsCell({ row, groupOwnerName }: ActionsCellProps) {
                                             name="_method"
                                             value="PUT"
                                         />
-                                            <div className="space-y-4 rounded-lg border p-4">
-                                                {/* ID */}
-                                                <div className="flex flex-col gap-1">
-                                                    <label className="text-sm font-medium">
-                                                        Nama {groupOwnerName}
-                                                    </label>
-                                                    <input
-                                                        name="name"
-                                                        defaultValue={row.name}
-                                                        className="w-full rounded border p-2"
-                                                    />
-                                                    <InputError
-                                                        message={errors.name}
-                                                    />
-                                                </div>                                                
+                                        <div className="space-y-4 rounded-lg border p-4">
+                                            {/* ID */}
+                                            <div className="flex flex-col gap-1">
+                                                <label className="text-sm font-medium">
+                                                    Nama
+                                                </label>
+                                                <input
+                                                    name="name"
+                                                    defaultValue={row.name}
+                                                    className="w-full rounded border p-2"
+                                                />
+                                                <InputError
+                                                    message={errors.name}
+                                                />
                                             </div>
+                                        </div>
                                         {/* ================= SAVE BUTTONS ================= */}
                                         <div className="flex justify-end gap-3">
                                             <Button
@@ -106,7 +105,7 @@ export function ActionsCell({ row, groupOwnerName }: ActionsCellProps) {
                 return (
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger
-                            title={`Hapus ${groupOwnerName}`}
+                            title={`Hapus Jenis Dokumen`}
                             className="hover:bg-icon-delete-hover cursor-pointer rounded p-1 transition hover:bg-foreground/5"
                         >
                             <Trash className="h-4 w-4 text-icon-delete" />
@@ -118,22 +117,27 @@ export function ActionsCell({ row, groupOwnerName }: ActionsCellProps) {
                             </DialogHeader>
 
                             <Form
-                                {...GroupOwnerController.destroy.form({
-                                    groupOwner: row.id,
+                                {...DocumentTypeController.destroy.form({
+                                    documentType: row.id,
                                 })}
-                                onSuccess={() => {window.location.reload();setOpen(false);}}
-                                options={{ replace: true , preserveState: false}}
+                                onSuccess={() => setOpen(false)}
+                                options={{ preserveScroll: true }}
                                 className="space-y-6"
                             >
                                 {({ processing }) => (
                                     <>
                                         <p className="text-sm">
-                                            Apakah anda yakin ingin menghapus{' '}
-                                            <strong>{row.name}</strong>? Aksi
-                                            ini akan menghapus{' '}
-                                            <strong>
-                                                proses bisnis terkait dengan {groupOwnerName.toLowerCase()}  ini
-                                            </strong>{' '}
+                                            Apakah anda yakin ingin menghapus jenis dokumen{' '}
+                                            <strong>{row.name}?</strong>{' '}
+                                            {(row.documents_count ?? 0) > 0 && (
+                                                <>
+                                                    Aksi ini akan menghapus{' '}
+                                                    <strong>
+                                                        {row.documents_count}{' '}
+                                                        dokumen terkait dengan jenis dokumen ini
+                                                    </strong>{' '}
+                                                </>
+                                            )}
                                             dan tidak dapat dibatalkan.
                                         </p>
 

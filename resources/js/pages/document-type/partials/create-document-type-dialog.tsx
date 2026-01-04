@@ -7,30 +7,27 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
-import { Form, router } from "@inertiajs/react";
-import GroupOwnerController from "@/actions/App/Http/Controllers/GroupOwnerController";
+import { Form } from "@inertiajs/react";
 import InputError from "@/components/input-error";
 import { Spinner } from "@/components/ui/spinner";
+import DocumentTypeController from "@/actions/App/Http/Controllers/DocumentTypeController";
 
-export default function CreateGroupOwnerDialog({groupOwnerName} : {groupOwnerName : string}) {
+export default function CreateDocumentTypeDialog() {
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="">Tambah {groupOwnerName}</Button>
+                <Button className="">Tambah Jenis Dokumen</Button>
             </DialogTrigger>
 
             <DialogContent className="max-w-sm rounded-xl">
                 <DialogHeader>
-                    <DialogTitle>Tambah {groupOwnerName}</DialogTitle>
+                    <DialogTitle>Tambah Jenis Dokumen</DialogTitle>
                 </DialogHeader>
                 <Form
-                    {...GroupOwnerController.store.form()}
-                    onSuccess={() => {
-                        window.location.reload()
-                        setOpen(false)
-                    }}
+                    {...DocumentTypeController.store.form()}
+                    onSuccess={() => setOpen(false)}
                     options={{ preserveScroll: true }}
                     className="space-y-6"
                 >
@@ -40,7 +37,7 @@ export default function CreateGroupOwnerDialog({groupOwnerName} : {groupOwnerNam
                                 {/* Name */}
                                 <div className="flex flex-col gap-1">
                                     <label className="text-sm font-medium">
-                                        Nama {groupOwnerName}
+                                        Nama Jenis Dokumen
                                     </label>
                                     <input
                                         name="name"

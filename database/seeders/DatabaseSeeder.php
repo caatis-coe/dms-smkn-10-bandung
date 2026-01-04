@@ -17,10 +17,10 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             GroupOwnerSeeder::class,
+            DocumentTypeSeeder::class,
             BusinessProcessNodeSeeder::class,
             BusinessProcessSeeder::class,
             DocumentSeeder::class,
-
         ]);
 
 

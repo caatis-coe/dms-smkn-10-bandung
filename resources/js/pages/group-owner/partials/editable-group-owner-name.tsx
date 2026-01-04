@@ -32,6 +32,7 @@ export default function EditableGroupOwnerName({
             {
                 preserveScroll: true,
                 onFinish: () => setEditing(false),
+                onSuccess: () => window.location.reload()
             }
         );
     };

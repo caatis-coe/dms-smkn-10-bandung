@@ -39,26 +39,27 @@ export default function BusinessProcess({
     query,
     nodes,
     topNodes,
+    groupOwners 
 }: {
     query: Query;
     nodes: ProcessNode[];
-    topNodes: ProcessNode[];
+    topNodes: ProcessNode[]
+    groupOwners?: GroupOwner[]
 }) {
     const {
         auth: { user },
     } = usePage<SharedData>().props;
 
-    const canAdmin = user?.role === 'admin';
+    const canAdmin =  user.email_verified_by_admin_at && user?.role === 'admin';
 
     const [queryState, setQueryState] = useState(query);
     const [isLoading, setIsLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [imageName, setImageName] = useState<string | null>(null);
 
-    const groupOwners = usePage().props.group_owners as GroupOwner[];
     const groupOwnerName = usePage().props.group_owner_title_name as string;
 
-    const hasGroupOwners = groupOwners.length > 0;
+    const hasGroupOwners = (groupOwners?.length ?? 0) > 0;
 
     /* ================= QUERY EFFECT ================= */
     useEffect(() => {
@@ -87,15 +88,15 @@ export default function BusinessProcess({
                 {!hasGroupOwners ? (
                     <Container className="flex flex-col items-center justify-center gap-3 !py-16 text-center">
                         <h2 className="text-lg font-semibold text-foreground">
-                            Tidak ada {groupOwnerName}
+                            {groupOwnerName} belum dibuat
                         </h2>
 
                         <p className="max-w-md text-sm text-muted-foreground">
-                            Proses bisnis membutuhkan minimal satu{' '}
-                            {groupOwnerName}.{' '}
+                            Saat ini belum ada {groupOwnerName} yang terdaftar.
+                            Proses bisnis tidak dapat dilanjutkan tanpa {groupOwnerName}.{` `}
                             {canAdmin
-                                ? `Silakan buat ${groupOwnerName} terlebih dahulu untuk melanjutkan.`
-                                : `Silakan hubungi admin untuk melanjutkan.`}
+                                ? `Silakan buat ${groupOwnerName} untuk melanjutkan.`
+                                : `Silakan hubungi admin agar proses dapat dilanjutkan.`}
                         </p>
 
                         {canAdmin && (
@@ -108,27 +109,29 @@ export default function BusinessProcess({
                     <>
                         {/* ================= GROUP OWNER TABS ================= */}
                         <Container className="flex flex-wrap gap-4">
-                            {groupOwners.map((owner) => (
-                                <button
-                                    key={owner.id}
-                                    type="button"
-                                    onClick={() =>
-                                        setQueryState((prev) => ({
-                                            ...prev,
-                                            group_owner: owner.id,
-                                            search: '',
-                                        }))
-                                    }
-                                    className={cn(
-                                        'h-fit rounded-md px-4 py-2 text-sm font-medium transition',
-                                        owner.id == query.group_owner
-                                            ? 'pointer-events-none bg-primary text-primary-foreground'
-                                            : 'bg-muted-foreground/10 hover:bg-muted-foreground/20 focus:bg-muted-foreground/20',
-                                    )}
-                                >
-                                    {owner.name}
-                                </button>
-                            ))}
+                            {groupOwners?.map((owner) => {
+                                return (
+                                    <button
+                                        key={owner.id}
+                                        type="button"
+                                        onClick={() =>
+                                            setQueryState((prev) => ({
+                                                ...prev,
+                                                group_owner: owner.id,
+                                                search: '',
+                                            }))
+                                        }
+                                        className={cn(
+                                            'h-fit rounded-md px-4 py-2 text-sm font-medium transition',
+                                            owner.id == query.group_owner
+                                                ? 'pointer-events-none bg-primary text-primary-foreground'
+                                                : 'bg-muted-foreground/10 hover:bg-muted-foreground/20 focus:bg-muted-foreground/20',
+                                        )}
+                                    >
+                                        {owner.name}
+                                    </button>
+                                )
+                            })}
                         </Container>
 
                         <div className="flex justify-between">
@@ -270,16 +273,16 @@ export default function BusinessProcess({
                         }
                     }}
                 >
-                    <DialogContent className="w-fit border-0">
+                    <DialogContent className="max-w-[80dvw] border-0">
                         <DialogHeader className="">
                             <DialogTitle>{imageName}</DialogTitle>
                         </DialogHeader>
 
-                        <div className="flex items-center justify-center">
+                        <div className="flex items-center justify-center ">
                             <img
                                 src={previewImage ?? ''}
                                 alt="Preview"
-                                className="max-w-full"
+                                className=""
                             />
                         </div>
                     </DialogContent>

@@ -6,7 +6,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import type { Document, GroupOwner, User } from '@/types';
+import type { Document, DocumentType, GroupOwner, User } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
 import { Pencil, Trash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -27,11 +27,12 @@ export type ActionsCellProps = {
 };
 
 export function ActionsCell({ row, user }: ActionsCellProps) {
-    const canAdmin = user?.role === 'admin';
+    const canAdmin = user?.role === 'admin' && user.email_verified_by_admin_at;
     if (!canAdmin) return null;
     const owners = usePage().props.group_owners as GroupOwner[];
 
-    const [documentType, setDocumentType] = useState(row.document_type);
+    const documentTypes = usePage().props.document_types as DocumentType[];
+    const [documentType, setDocumentType] = useState<DocumentType>(row.document_type);
     const [documentOwner, setDocumentOwner] = useState<GroupOwner | null>(
         row.owner ?? null,
     );
@@ -39,6 +40,9 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
     const mainFileRef = useRef<HTMLInputElement>(null);
     const supportingFileRef = useRef<HTMLInputElement>(null);
 
+    const [status, setStatus] = useState<
+        'aktif' | 'dicabut' | 'digantikan_oleh_dokumen_lain'
+    >(row.status);
     const [mainFile, setMainFile] = useState<File | null>(null);
     const [supportingFile, setSupportingFile] = useState<File | null>(null);
 
@@ -63,7 +67,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                             <Pencil className="h-4 w-4 text-icon-edit" />
                         </DialogTrigger>
 
-                        <DialogContent className="flex max-w-[95vw] flex-col sm:max-w-[80vw] max-h-[95vh] overflow-y-auto">
+                        <DialogContent className="flex max-h-[95vh] max-w-[95vw] flex-col overflow-y-auto sm:max-w-[80vw]">
                             <DialogHeader>
                                 <DialogTitle>Edit Document</DialogTitle>
                             </DialogHeader>
@@ -86,9 +90,9 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                             value="PUT"
                                         />
 
-                                        <div className="grid grid-cols-1 gap-4 md:gap-9 md:grid-cols-2 rounded-lg border p-4 ">
+                                        <div className="grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-2 md:gap-9">
                                             {/* ================= LEFT COLUMN ================= */}
-                                            <div className="space-y-4 ">
+                                            <div className="space-y-4">
                                                 {/* ID */}
                                                 <div className="flex flex-col gap-1">
                                                     <label className="text-sm font-medium">
@@ -162,46 +166,32 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                     </label>
 
                                                     <DropdownMenu>
-                                                        <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2 text-left">
-                                                            {documentType ===
-                                                            'prosedur'
-                                                                ? 'Prosedur'
-                                                                : documentType ===
-                                                                    'instruksi'
-                                                                  ? 'Instruksi'
-                                                                  : 'Dokumen Lain'}
+                                                        <DropdownMenuTrigger
+                                                            className={`${!documentType ? 'pointer-events-none text-foreground/20' : ''} flex w-full items-center justify-between rounded border bg-background p-2`}
+                                                        >
+                                                            {documentType?.name ??
+                                                                'Tidak ada jenis dokumen tersedia'}
                                                         </DropdownMenuTrigger>
 
                                                         <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    setDocumentType(
-                                                                        'prosedur',
-                                                                    )
-                                                                }
-                                                            >
-                                                                Prosedur
-                                                            </DropdownMenuItem>
-
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    setDocumentType(
-                                                                        'instruksi',
-                                                                    )
-                                                                }
-                                                            >
-                                                                Instruksi
-                                                            </DropdownMenuItem>
-
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    setDocumentType(
-                                                                        'dokumen_lain',
-                                                                    )
-                                                                }
-                                                            >
-                                                                Dokumen Lain
-                                                            </DropdownMenuItem>
+                                                            {documentTypes.map(
+                                                                (type) => (
+                                                                    <DropdownMenuItem
+                                                                        key={
+                                                                            type?.id
+                                                                        }
+                                                                        onClick={() => {
+                                                                            setDocumentType(
+                                                                                type,
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            type?.name
+                                                                        }
+                                                                    </DropdownMenuItem>
+                                                                ),
+                                                            )}
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                     <InputError
@@ -209,12 +199,13 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                             errors.document_type
                                                         }
                                                     />
-
-                                                    {/* Hidden input for Laravel */}
+                                                    {!documentType && (
+                                                        <InputError message="Buat terlebih dahulu jenis dokumen sebelum melanjutkan unggahan dokumen" />
+                                                    )}
                                                     <input
                                                         type="hidden"
                                                         name="document_type"
-                                                        value={documentType}
+                                                        value={documentType.id}
                                                     />
                                                 </div>
 
@@ -233,22 +224,24 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                         </DropdownMenuTrigger>
 
                                                         <DropdownMenuContent className="max-h-64 w-full min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto">
-                                                            {[...owners, null].map(
-                                                                (owner) => (
-                                                                    <DropdownMenuItem
-                                                                        key={
-                                                                            owner?.id
-                                                                        }
-                                                                        onClick={() => {
-                                                                            setDocumentOwner(
-                                                                                owner
-                                                                            )
-                                                                        }}
-                                                                    >
-                                                                        {owner?.name ?? "<Tidak ada pemilik dokumen>"}
-                                                                    </DropdownMenuItem>
-                                                                ),
-                                                            )}
+                                                            {[
+                                                                ...owners,
+                                                                null,
+                                                            ].map((owner) => (
+                                                                <DropdownMenuItem
+                                                                    key={
+                                                                        owner?.id
+                                                                    }
+                                                                    onClick={() => {
+                                                                        setDocumentOwner(
+                                                                            owner,
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    {owner?.name ??
+                                                                        '<Tidak ada pemilik dokumen>'}
+                                                                </DropdownMenuItem>
+                                                            ))}
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                     <InputError
@@ -260,7 +253,8 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                         type="hidden"
                                                         name="document_owner"
                                                         value={
-                                                            documentOwner?.id ?? ''
+                                                            documentOwner?.id ??
+                                                            ''
                                                         }
                                                     />
                                                 </div>
@@ -314,7 +308,7 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                             </div>
 
                                             {/* ================= RIGHT COLUMN ================= */}
-                                            <div className="space-y-4 ">
+                                            <div className="space-y-4">
                                                 {/* APPLICATION LINK */}
                                                 <div className="flex flex-col gap-1">
                                                     <label className="text-sm font-medium">
@@ -332,6 +326,63 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                                                         message={
                                                             errors.application_link
                                                         }
+                                                    />
+                                                </div>
+                                                {/* STATUS */}
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-sm font-medium">
+                                                        Jenis Dokumen
+                                                    </label>
+
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2">
+                                                            {status ===
+                                                            'dicabut'
+                                                                ? 'Dicabut'
+                                                                : status ===
+                                                                    'aktif'
+                                                                  ? 'Aktif'
+                                                                  : 'Digantikan Oleh Dokumen Lain'}
+                                                        </DropdownMenuTrigger>
+
+                                                        <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setStatus(
+                                                                        'aktif',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Aktif
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setStatus(
+                                                                        'dicabut',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Dicabut
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    setStatus(
+                                                                        'digantikan_oleh_dokumen_lain',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Digantikan Oleh
+                                                                Dokumen Lain
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <InputError
+                                                        message={errors.status}
+                                                    />
+                                                    <input
+                                                        type="hidden"
+                                                        name="status"
+                                                        value={status}
                                                     />
                                                 </div>
                                                 {/* ================= MAIN FILE ================= */}
@@ -501,9 +552,10 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
 
                 return (
                     <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger 
+                        <DialogTrigger
                             title="Hapus Dokumen"
-                            className="hover:bg-icon-delete-hover cursor-pointer rounded p-1 transition hover:bg-foreground/5">
+                            className="hover:bg-icon-delete-hover cursor-pointer rounded p-1 transition hover:bg-foreground/5"
+                        >
                             <Trash className="h-4 w-4 text-icon-delete" />
                         </DialogTrigger>
 
@@ -511,7 +563,6 @@ export function ActionsCell({ row, user }: ActionsCellProps) {
                             <DialogHeader>
                                 <DialogTitle>Delete Document</DialogTitle>
                             </DialogHeader>
-                            
 
                             <Form
                                 {...DocumentController.destroy.form({

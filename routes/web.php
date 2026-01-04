@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BusinessProcessController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\GroupOwnerController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -15,7 +16,7 @@ Route::get('/', function () {
 Route::get('document', [DocumentController::class, 'index'])
     ->name('document.index');
 
-Route::middleware(['auth', 'verified', 'role:admin,user'])->group(function () {
+Route::middleware(['role:admin,user'])->group(function () {
     Route::get('dashboard', function () {
         return redirect()->route('document.index');
     })->name('dashboard');
@@ -30,7 +31,6 @@ Route::middleware(['auth', 'verified', 'role:admin,user'])->group(function () {
         Route::delete('{document}', [DocumentController::class, 'destroy'])
             ->name('document.destroy');
     });
-
 
     Route::prefix('business-process')->group(function () {
         Route::get('', [BusinessProcessController::class, 'index'])
@@ -87,6 +87,20 @@ Route::middleware(['auth', 'verified', 'role:admin,user'])->group(function () {
     
             Route::delete('{groupOwner}', [GroupOwnerController::class, 'destroy'])
                 ->name('group-owner.destroy');
+        });
+
+        Route::prefix('document-type')->group(function () {
+            Route::get('', [DocumentTypeController::class, 'index'])
+                ->name('document-type.index');
+    
+            Route::post('', [DocumentTypeController::class, 'store'])
+                ->name('document-type.store');
+
+            Route::put('{documentType}', [DocumentTypeController::class, 'update'])
+                ->name('document-type.update');
+
+            Route::delete('{documentType}', [DocumentTypeController::class, 'destroy'])
+                ->name('document-type.destroy');    
         });
     });
     

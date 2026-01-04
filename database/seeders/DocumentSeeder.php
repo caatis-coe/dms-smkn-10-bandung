@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Document;
+use App\Models\DocumentType;
 use App\Models\User;
 use App\Models\GroupOwner;
 use Illuminate\Database\Seeder;
@@ -19,6 +20,8 @@ class DocumentSeeder extends Seeder
 
         $users = User::pluck('id')->toArray();
         $owners = GroupOwner::pluck('id')->toArray();
+        $documentType = DocumentType::pluck('id')->toArray();
+        $status = ['aktif', 'dicabut', 'digantikan_oleh_dokumen_lain'];
 
         $standards = [
             'Dokumen ISO 21001:2018',
@@ -31,8 +34,6 @@ class DocumentSeeder extends Seeder
             '7.1.3', '7.3', '8.5.1', '8.5.2', '8.5.5',
             '7.5.1', '7.5.3.2', '7.1.6.2'
         ];
-
-        $types = ['prosedur', 'instruksi', 'dokumen_lain'];
 
         for ($i = 1; $i <= 24; $i++) {
 
@@ -53,7 +54,8 @@ class DocumentSeeder extends Seeder
                 'name'                 => "Sample Document {$i}",
                 'standard'             => $standards[array_rand($standards)],
                 'clause'               => $clauses[array_rand($clauses)],
-                'document_type'        => $types[array_rand($types)],
+                'document_type'        => $documentType [array_rand($documentType )],
+                'status'               => $status[array_rand($status)],  
                 'document_owner'       => $owners[array_rand($owners)] ?? null,
                 'file_path'            => $mainPath,
                 'supporting_file_path' => rand(0, 1) 

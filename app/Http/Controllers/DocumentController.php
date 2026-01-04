@@ -27,14 +27,21 @@ class DocumentController extends Controller
             'name',
             'standard',
             'clause',
-            'document_type',
+            'status',
             'revision',
+            'status',
+            'effective_date'
         ];
 
         $relationFilters = [
-            'published_by' => 'publishedBy',
-            'last_updated_by' => 'lastUpdatedBy',
             'document_owner' => 'owner',
+            'document_type' => 'documentType'
+        ];
+
+        $exactMatchFilters = [
+            'status',
+            'document_type',
+            'document_owner',
         ];
 
         $documents = Document::query()
@@ -43,18 +50,27 @@ class DocumentController extends Controller
                 fn($q) =>
                 $q->orderBy($query['sort'], $query['direction'])
             )
-            ->when(true, function ($q) use ($query, $directFilters, $relationFilters) {
+            ->when(true, function ($q) use ($query, $directFilters, $relationFilters, $exactMatchFilters) {
                 foreach ($query['filters'] as $key => $value) {
                     if (!$value)
                         continue;
 
                     if (in_array($key, $directFilters)) {
-                        $q->where($key, 'LIKE', "%{$value}%");
+                        if (in_array($key, $exactMatchFilters)) {
+                            $q->where($key, $value);
+                        } else {
+                            $q->where($key, 'LIKE', "%{$value}%");
+                        }
+
                     }
 
                     if (array_key_exists($key, $relationFilters)) {
-                        $q->whereHas($relationFilters[$key], function ($sub) use ($value) {
-                            $sub->where('name', 'LIKE', "%{$value}%");
+                        $q->whereHas($relationFilters[$key], function ($sub) use ($value, $key, $exactMatchFilters) {
+                            if (in_array($key, $exactMatchFilters)) {
+                                $sub->where('name', $value);
+                            } else {
+                                $sub->where('name', 'LIKE', "%{$value}%");
+                            }
                         });
                     }
                 }
@@ -62,15 +78,10 @@ class DocumentController extends Controller
             ->paginate($query['per_page'] ?? 10)
             ->withQueryString();
 
-        $documentsCount = Cache::rememberForever(
-            'documents_count',
-            fn() => Document::query()->count()
-        );
-        $groupOwnerName = Config::where('variable', 'group_owner')->first()->value ?? "NaN";
+        $documentsCount = Document::query()->count();
+        
         $groupOwnerCount = GroupOwner::query()->count();
-        $groupOwnerDocumentCount = Cache::rememberForever(
-            'group_owner_document_count',
-            fn() => GroupOwner::leftJoin(
+        $groupOwnerDocumentCount = GroupOwner::leftJoin(
                 'documents',
                 'group_owners.id',
                 '=',
@@ -81,9 +92,7 @@ class DocumentController extends Controller
                 \DB::raw('COUNT(documents.id) as documents_count')
             )
             ->groupBy('group_owners.name')
-            ->get());
-        
- 
+            ->get();
 
         return Inertia::render('document/index', [
             'documentsCount' => $documentsCount,
@@ -92,8 +101,6 @@ class DocumentController extends Controller
             'documents' => $documents,
             'query' => $query,
         ]);
-        
-        
     }
 
     public function store(Request $request)
@@ -103,7 +110,8 @@ class DocumentController extends Controller
             'name' => 'required|string|max:255',
             'standard' => 'nullable|string|max:255',
             'clause' => 'nullable|string|max:255',
-            'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
+            'status' => 'required|in:aktif,dicabut,digantikan_oleh_dokumen_lain',
+            'document_type' => 'required|exists:document_types,id',
             'document_owner' => 'nullable|exists:group_owners,id',
             'revision' => 'nullable|string|max:50',
             'effective_date' => 'nullable|date',
@@ -143,7 +151,8 @@ class DocumentController extends Controller
             'name' => 'required|string|max:255',
             'standard' => 'nullable|string|max:255',
             'clause' => 'nullable|string|max:255',
-            'document_type' => 'required|in:prosedur,instruksi,dokumen_lain',
+            'status' => 'required|in:aktif,dicabut,digantikan_oleh_dokumen_lain',
+            'document_type' => 'required|exists:document_types,id',
             'document_owner' => 'nullable|exists:group_owners,id',
             'revision' => 'nullable|string|max:50',
             'effective_date' => 'nullable|date',
@@ -198,19 +207,8 @@ class DocumentController extends Controller
         return back()->with('success', 'Document updated successfully.');
     }
 
-
     public function destroy(Document $document)
     {
-        if (
-            $document->file_path &&
-            Storage::disk('public')->exists($document->file_path)
-        ) Storage::disk('public')->delete($document->file_path);
-        
-        if (
-            $document->supporting_file_path &&
-            Storage::disk('public')->exists($document->supporting_file_path)
-        ) Storage::disk('public')->delete($document->supporting_file_path);
-
         $document->delete();
 
         return back()->with('success', 'Document deleted.');

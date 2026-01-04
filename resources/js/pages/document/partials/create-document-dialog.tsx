@@ -14,7 +14,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import FileDropzone from '@/components/ui/file-dropzone';
-import { GroupOwner } from '@/types';
+import { DocumentType, GroupOwner } from '@/types';
 import { Form, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '../../../components/input-error';
@@ -23,28 +23,31 @@ import { Spinner } from '../../../components/ui/spinner';
 export default function CreateDocumentDialog() {
     const [open, setOpen] = useState(false);
 
-    /* ================= STATE ================= */
-    const [documentType, setDocumentType] = useState<
-        'prosedur' | 'instruksi' | 'dokumen_lain'
-    >('prosedur');
+    const documentTypes = usePage().props.document_types as DocumentType[];
+    const firstDocumentType = documentTypes[0] ?? null;
+    const owners = usePage().props.group_owners as GroupOwner[];
 
+    const [status, setStatus] = useState<
+        'aktif' | 'dicabut' | 'digantikan_oleh_dokumen_lain'
+    >('aktif');
     const [documentOwner, setDocumentOwner] = useState<GroupOwner | null>(null);
+    const [documentType, setDocumentType] = useState<DocumentType | null>(
+        firstDocumentType,
+    );
 
     const [mainFile, setMainFile] = useState<File | null>(null);
     const [supportingFile, setSupportingFile] = useState<File | null>(null);
 
     useEffect(() => {
-      setDocumentOwner(null);
-      setDocumentType('prosedur');
-      setMainFile(null);
-      setSupportingFile(null);
-    }, [open])
-    
+        setDocumentOwner(null);
+        setDocumentType(firstDocumentType);
+        setMainFile(null);
+        setSupportingFile(null);
+        setStatus('aktif');
+    }, [open]);
 
     const mainFileRef = useRef<HTMLInputElement>(null);
     const supportingFileRef = useRef<HTMLInputElement>(null);
-
-    const owners = usePage().props.group_owners as GroupOwner[];
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -64,7 +67,8 @@ export default function CreateDocumentDialog() {
                         setMainFile(null);
                         setSupportingFile(null);
                         setDocumentOwner(null);
-                        setDocumentType('prosedur');
+                        setDocumentType(firstDocumentType);
+                        setStatus('aktif');
                     }}
                     options={{ preserveScroll: true }}
                     className="space-y-6"
@@ -125,52 +129,38 @@ export default function CreateDocumentDialog() {
                                         </label>
 
                                         <DropdownMenu>
-                                            <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2">
-                                                {documentType === 'prosedur'
-                                                    ? 'Prosedur'
-                                                    : documentType ===
-                                                        'instruksi'
-                                                      ? 'Instruksi'
-                                                      : 'Dokumen Lain'}
+                                            <DropdownMenuTrigger
+                                                className={`${!documentType ? 'pointer-events-none text-foreground/20' : ''} flex w-full items-center justify-between rounded border bg-background p-2`}
+                                            >
+                                                {documentType?.name ??
+                                                    'Tidak ada jenis dokumen tersedia'}
                                             </DropdownMenuTrigger>
 
                                             <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        setDocumentType(
-                                                            'prosedur',
-                                                        )
-                                                    }
-                                                >
-                                                    Prosedur
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        setDocumentType(
-                                                            'instruksi',
-                                                        )
-                                                    }
-                                                >
-                                                    Instruksi
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        setDocumentType(
-                                                            'dokumen_lain',
-                                                        )
-                                                    }
-                                                >
-                                                    Dokumen Lain
-                                                </DropdownMenuItem>
+                                                {documentTypes.map((type) => (
+                                                    <DropdownMenuItem
+                                                        key={type?.id}
+                                                        onClick={() => {
+                                                            setDocumentType(
+                                                                type,
+                                                            );
+                                                        }}
+                                                    >
+                                                        {type?.name}
+                                                    </DropdownMenuItem>
+                                                ))}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                         <InputError
                                             message={errors.document_type}
                                         />
+                                        {!documentType && (
+                                            <InputError message="Buat terlebih dahulu jenis dokumen sebelum melanjutkan unggahan dokumen" />
+                                        )}
                                         <input
                                             type="hidden"
                                             name="document_type"
-                                            value={documentType}
+                                            value={documentType?.id}
                                         />
                                     </div>
 
@@ -254,6 +244,56 @@ export default function CreateDocumentDialog() {
                                             message={errors.application_link}
                                         />
                                     </div>
+
+                                    {/* STATUS */}
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-sm font-medium">
+                                            Jenis Dokumen
+                                        </label>
+
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger className="flex w-full items-center justify-between rounded border bg-background p-2">
+                                                {status === 'dicabut'
+                                                    ? 'Dicabut'
+                                                    : status === 'aktif'
+                                                      ? 'Aktif'
+                                                      : 'Digantikan Oleh Dokumen Lain'}
+                                            </DropdownMenuTrigger>
+
+                                            <DropdownMenuContent className="w-full min-w-[var(--radix-dropdown-menu-trigger-width)]">
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        setStatus('aktif')
+                                                    }
+                                                >
+                                                    Aktif
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        setStatus('dicabut')
+                                                    }
+                                                >
+                                                    Dicabut
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        setStatus(
+                                                            'digantikan_oleh_dokumen_lain',
+                                                        )
+                                                    }
+                                                >
+                                                    Digantikan Oleh Dokumen Lain
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <InputError message={errors.status} />
+                                        <input
+                                            type="hidden"
+                                            name="status"
+                                            value={status}
+                                        />
+                                    </div>
+
                                     {/* MAIN FILE (REQUIRED) */}
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium">
@@ -330,7 +370,11 @@ export default function CreateDocumentDialog() {
                                     Cancel
                                 </Button>
 
-                                <Button type="submit" variant="default">
+                                <Button
+                                    disabled={!documentType}
+                                    type="submit"
+                                    variant="default"
+                                >
                                     {processing && <Spinner />}
                                     Create
                                 </Button>
