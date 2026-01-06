@@ -34,8 +34,8 @@ class DocumentSeeder extends Seeder
             '7.1.3', '7.3', '8.5.1', '8.5.2', '8.5.5',
             '7.5.1', '7.5.3.2', '7.1.6.2'
         ];
-
-        for ($i = 1; $i <= 24; $i++) {
+        if (!$documentType) return;
+        for ($i = 1; $i <= 9; $i++) {
 
             $uuid = Str::uuid()->toString();
 

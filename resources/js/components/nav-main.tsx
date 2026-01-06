@@ -49,7 +49,7 @@ export function NavMain({
                     </SidebarMenuItem>
                 ))}
                 {authItems.map((item) => (
-                    <SidebarMenuItem title='Login Required' className={`${!auth.user.email_verified_by_admin_at ? "pointer-events-none opacity-40" : ""}`} key={item.title}>
+                    <SidebarMenuItem title='Login Required' className={`${!auth.user || !auth.user.email_verified_by_admin_at ? "pointer-events-none opacity-40" : ""}`} key={item.title}>
                         <SidebarMenuButton
                             asChild
                             isActive={isActive(item)}

@@ -50,7 +50,7 @@ export default function BusinessProcess({
         auth: { user },
     } = usePage<SharedData>().props;
 
-    const canAdmin =  user.email_verified_by_admin_at && user?.role === 'admin';
+    const canAdmin =  user?.email_verified_by_admin_at && user?.role === 'admin';
 
     const [queryState, setQueryState] = useState(query);
     const [isLoading, setIsLoading] = useState(false);
