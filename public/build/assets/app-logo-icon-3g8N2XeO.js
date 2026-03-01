@@ -1,0 +1,1 @@
+import{c as s,j as e}from"./app-pdqx5I1V.js";const g="/build/assets/Logo-SMK-10-Bandung-T-vH9gtp.png";function i(n){const o=s.c(2);let t;return o[0]!==n?(t=e.jsx("img",{src:g,alt:"SMK 10 Bandung Logo",...n}),o[0]=n,o[1]=t):t=o[1],t}export{i as A};
